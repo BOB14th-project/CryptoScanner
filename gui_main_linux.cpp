@@ -1,8 +1,3 @@
-// gui_main_linux.cpp
-//
-// Qt GUI for CryptoScanner on Linux.
-// Adds directory-recursive scanning support (파일/디렉터리 모두 선택 가능).
-
 #include "CryptoScanner.h"
 
 #ifdef _WIN32
@@ -29,7 +24,7 @@ class MainWindow : public QWidget
 public:
     MainWindow(QWidget *parent = nullptr) : QWidget(parent)
     {
-        setWindowTitle("Crypto Scanner (GUI)");
+        setWindowTitle("Crypto Scanner");
         auto *layout = new QVBoxLayout(this);
 
         // Path row (file or directory)
@@ -57,14 +52,14 @@ public:
         layout->addLayout(row2);
 
         // Table
-        table = new QTableWidget(0, 5);
+        table = new QTableWidget(0, 4);
         table->setHorizontalHeaderLabels(QStringList()
-                                         << "번호" << "파일(항목)" << "오프셋" << "비양자내성 암호" << "검색된 문자열");
-        table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+                                         << "파일(항목)" << "오프셋" << "비양자내성 암호" << "검색된 문자열");
+        table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+        table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
         table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-        table->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-        table->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
+        table->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+        table->verticalHeader()->setDefaultAlignment(Qt::AlignCenter);
         table->setSelectionBehavior(QAbstractItemView::SelectRows);
         table->setEditTriggers(QAbstractItemView::NoEditTriggers);
         layout->addWidget(table, 1);
@@ -89,12 +84,10 @@ private slots:
     }
     void onBrowseDir()
     {
-        // ※ native dialog에서 더블클릭 시 내부로 들어가 버리는 문제 회피
         QFileDialog dlg(this, "폴더 선택");
         dlg.setFileMode(QFileDialog::Directory);
         dlg.setOption(QFileDialog::ShowDirsOnly, true);
-        dlg.setOption(QFileDialog::DontUseNativeDialog, true); // 핵심: 폴더 '선택' 가능 모드
-        // 필요 시 시작 위치 지정: dlg.setDirectory(QDir::homePath());
+        dlg.setOption(QFileDialog::DontUseNativeDialog, true);
         if (dlg.exec() == QDialog::Accepted)
         {
             const QStringList sel = dlg.selectedFiles();
@@ -141,20 +134,21 @@ private:
         for (int i = 0; i < (int)det.size(); ++i)
         {
             const auto &d = det[i];
-            auto *c0 = new QTableWidgetItem(QString::number(i + 1));
-            auto *c1 = new QTableWidgetItem(QString::fromStdString(d.filePath));
-            auto *c2 = new QTableWidgetItem(QString("%1 (0x%2)")
+            table->setVerticalHeaderItem(i, new QTableWidgetItem(QString::number(i + 1)));
+
+            auto *c0 = new QTableWidgetItem(QString::fromStdString(d.filePath));
+            auto *c1 = new QTableWidgetItem(QString("%1 (0x%2)")
                                                 .arg(static_cast<qulonglong>(d.offset))
                                                 .arg(QString::number(static_cast<qulonglong>(d.offset), 16)));
-            auto *c3 = new QTableWidgetItem(QString::fromStdString(d.algorithm));
-            auto *c4 = new QTableWidgetItem(QString::fromStdString(d.matchString));
-            c0->setTextAlignment(Qt::AlignCenter);
-            c2->setTextAlignment(Qt::AlignCenter);
+            auto *c2 = new QTableWidgetItem(QString::fromStdString(d.algorithm));
+            auto *c3 = new QTableWidgetItem(QString::fromStdString(d.matchString));
+
+            c1->setTextAlignment(Qt::AlignCenter);
+
             table->setItem(i, 0, c0);
             table->setItem(i, 1, c1);
             table->setItem(i, 2, c2);
             table->setItem(i, 3, c3);
-            table->setItem(i, 4, c4);
         }
         if (det.empty())
         {
@@ -184,6 +178,4 @@ int main(int argc, char *argv[])
     return app.exec();
 }
 
-// *** 중요 ***
-// Q_OBJECT를 .cpp에 둔 경우 moc 파일을 포함해야 합니다.
 #include "gui_main_linux.moc"
