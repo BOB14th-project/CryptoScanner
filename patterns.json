@@ -1,0 +1,139 @@
+{
+  "regex": [
+    { "name": "RSA", "pattern": "\\bRSA(?:-?(?:1024|2048|4096))?\\b|PKCS#?1\\b|PKCS#?8\\b|modulus\\b|public\\s+exponent\\b|private\\s+exponent\\b", "icase": true },
+    { "name": "RSA exponent 65537", "pattern": "\\b(?:public\\s+exponent\\s*(?:=|:)?\\s*)?(?:65537|0x?10001)\\b", "icase": true },
+
+    { "name": "ECC/ECDSA/ECDH", "pattern": "\\b(?:ECC|ECDSA|ECDH|EC_KEY|EC_GROUP)\\b|secp(?:256r1|384r1|521r1|224r1|224k1|256k1)\\b|\\bP-(?:256|384|521)\\b|\\b(?:Curve25519|Ed25519|X25519|X448|Ed448)\\b", "icase": true },
+    { "name": "DSA", "pattern": "\\b(?:DSA|DSS|Digital\\s+Signature\\s+Algorithm)\\b|DSA_(?:sign|verify)", "icase": true },
+    { "name": "Diffie-Hellman", "pattern": "\\b(?:DH|Diffie-?Hellman)\\b(?:-(?:1024|2048|4096))?|modexp\\b|prime\\s+modulus\\b", "icase": true },
+    { "name": "ElGamal", "pattern": "\\bElGamal(?:\\s+Encryption|\\s+Signature)?\\b", "icase": true },
+
+    { "name": "AES-128/modes", "pattern": "\\bAES(?:[-_]?128)?\\b|Rijndael\\b|Advanced\\s+Encryption\\s+Standard\\b|AES-(?:CBC|GCM|ECB|OFB|CTR)\\b|AES_set_(?:encrypt|decrypt)_key\\b", "icase": true },
+    { "name": "3DES", "pattern": "\\b(?:3DES|TripleDES|DES|Data\\s+Encryption\\s+Standard)\\b", "icase": true },
+    { "name": "Blowfish/bcrypt", "pattern": "\\bBlowfish\\b|\\bbcrypt\\b", "icase": true },
+    { "name": "RC4", "pattern": "\\b(?:RC4|ARC4|Rivest\\s+Cipher\\s*4)\\b", "icase": true },
+
+    { "name": "SHA", "pattern": "\\b(?:SHA[-_]?1|SHA[-_]?224|SHA[-_]?256|SHA[-_]?384|SHA[-_]?512)\\b|\\bsha1sum\\b|\\bsha256sum\\b|\\bsha512sum\\b|\\bSecure\\s+Hash\\s+Algorithm\\s+1\\b|\\bSecure\\s+Hash\\s+Algorithm\\s+2\\b", "icase": true },
+    { "name": "MD5", "pattern": "\\bMD5\\b|\\bMessage\\s+Digest\\s+5\\b|\\bmd5sum\\b", "icase": true },
+
+    { "name": "OID dotted (rsaEncryption)", "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\.1\\b", "icase": true },
+    { "name": "OID dotted (rsassaPss)", "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\.10\\b", "icase": true },
+    { "name": "OID dotted (sha256WithRSAEncryption)", "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\.11\\b", "icase": true },
+    { "name": "OID dotted (pkcs-1)", "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\b", "icase": true },
+    { "name": "OID dotted (pbeWithMD2AndDES-CBC)", "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.5\\.1\\b", "icase": true },
+    { "name": "OID dotted (emailAddress)", "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.9\\.1\\b", "icase": true },
+
+    { "name": "OID dotted (ecPublicKey)", "pattern": "\\b1\\.2\\.840\\.10045\\.2\\.1\\b", "icase": true },
+    { "name": "OID dotted (secp256r1/prime256v1)", "pattern": "\\b1\\.2\\.840\\.10045\\.3\\.1\\.7\\b", "icase": true },
+    { "name": "OID dotted (secp384r1)", "pattern": "\\b1\\.3\\.132\\.0\\.34\\b", "icase": true },
+    { "name": "OID dotted (secp521r1)", "pattern": "\\b1\\.3\\.132\\.0\\.35\\b", "icase": true },
+    { "name": "OID dotted (secp224r1)", "pattern": "\\b1\\.3\\.132\\.0\\.33\\b", "icase": true },
+    { "name": "OID dotted (secp224k1)", "pattern": "\\b1\\.3\\.132\\.0\\.32\\b", "icase": true },
+    { "name": "OID dotted (secp256k1)", "pattern": "\\b1\\.3\\.132\\.0\\.10\\b", "icase": true },
+    { "name": "OID dotted (brainpoolP256r1)", "pattern": "\\b1\\.3\\.36\\.3\\.3\\.2\\.8\\.1\\.1\\.7\\b", "icase": true },
+    { "name": "OID dotted (brainpoolP384r1)", "pattern": "\\b1\\.3\\.36\\.3\\.3\\.2\\.8\\.1\\.1\\.11\\b", "icase": true },
+    { "name": "OID dotted (brainpoolP512r1)", "pattern": "\\b1\\.3\\.36\\.3\\.3\\.2\\.8\\.1\\.1\\.13\\b", "icase": true },
+    { "name": "OID dotted (X25519)", "pattern": "\\b1\\.3\\.101\\.110\\b", "icase": true },
+    { "name": "OID dotted (X448)", "pattern": "\\b1\\.3\\.101\\.111\\b", "icase": true },
+    { "name": "OID dotted (Ed25519)", "pattern": "\\b1\\.3\\.101\\.112\\b", "icase": true },
+    { "name": "OID dotted (Ed448)", "pattern": "\\b1\\.3\\.101\\.113\\b", "icase": true }
+  ],
+
+  "oids": [
+    { "name": "pkcs-1", "dotted": "1.2.840.113549.1.1", "emit": ["DER","VAL"] },
+    { "name": "rsaEncryption", "dotted": "1.2.840.113549.1.1.1", "emit": ["DER","VAL"] },
+    { "name": "md2WithRSAEncryption", "dotted": "1.2.840.113549.1.1.2", "emit": ["DER","VAL"] },
+    { "name": "md4WithRSAEncryption", "dotted": "1.2.840.113549.1.1.3", "emit": ["DER","VAL"] },
+    { "name": "md5WithRSAEncryption", "dotted": "1.2.840.113549.1.1.4", "emit": ["DER","VAL"] },
+    { "name": "sha1WithRSAEncryption", "dotted": "1.2.840.113549.1.1.5", "emit": ["DER","VAL"] },
+    { "name": "rsassaPss", "dotted": "1.2.840.113549.1.1.10", "emit": ["DER","VAL"] },
+    { "name": "sha256WithRSAEncryption", "dotted": "1.2.840.113549.1.1.11", "emit": ["DER","VAL"] },
+    { "name": "sha384WithRSAEncryption", "dotted": "1.2.840.113549.1.1.12", "emit": ["DER","VAL"] },
+    { "name": "sha512WithRSAEncryption", "dotted": "1.2.840.113549.1.1.13", "emit": ["DER","VAL"] },
+    { "name": "sha224WithRSAEncryption", "dotted": "1.2.840.113549.1.1.14", "emit": ["DER","VAL"] },
+    { "name": "sha512_224WithRSAEncryption", "dotted": "1.2.840.113549.1.1.15", "emit": ["DER","VAL"] },
+    { "name": "sha512_256WithRSAEncryption", "dotted": "1.2.840.113549.1.1.16", "emit": ["DER","VAL"] },
+    { "name": "pbeWithMD2AndDES-CBC", "dotted": "1.2.840.113549.1.5.1", "emit": ["DER","VAL"] },
+    { "name": "emailAddress", "dotted": "1.2.840.113549.1.9.1", "emit": ["DER","VAL"] },
+
+    { "name": "ecPublicKey", "dotted": "1.2.840.10045.2.1", "emit": ["DER","VAL"] },
+    { "name": "ecdsa-with-SHA1", "dotted": "1.2.840.10045.4.1", "emit": ["DER","VAL"] },
+    { "name": "ecdsa-with-SHA224", "dotted": "1.2.840.10045.4.3.1", "emit": ["DER","VAL"] },
+    { "name": "ecdsa-with-SHA256", "dotted": "1.2.840.10045.4.3.2", "emit": ["DER","VAL"] },
+    { "name": "ecdsa-with-SHA384", "dotted": "1.2.840.10045.4.3.3", "emit": ["DER","VAL"] },
+    { "name": "ecdsa-with-SHA512", "dotted": "1.2.840.10045.4.3.4", "emit": ["DER","VAL"] },
+
+    { "name": "secp256r1 (prime256v1)", "dotted": "1.2.840.10045.3.1.7", "emit": ["DER","VAL"] },
+    { "name": "secp384r1", "dotted": "1.3.132.0.34", "emit": ["DER","VAL"] },
+    { "name": "secp521r1", "dotted": "1.3.132.0.35", "emit": ["DER","VAL"] },
+    { "name": "secp224r1", "dotted": "1.3.132.0.33", "emit": ["DER","VAL"] },
+    { "name": "secp224k1", "dotted": "1.3.132.0.32", "emit": ["DER","VAL"] },
+    { "name": "secp256k1", "dotted": "1.3.132.0.10", "emit": ["DER","VAL"] },
+    { "name": "sect283k1", "dotted": "1.3.132.0.16", "emit": ["DER","VAL"] },
+    { "name": "sect283r1", "dotted": "1.3.132.0.17", "emit": ["DER","VAL"] },
+    { "name": "sect163k1", "dotted": "1.3.132.0.1", "emit": ["DER","VAL"] },
+    { "name": "sect163r2", "dotted": "1.3.132.0.15", "emit": ["DER","VAL"] },
+    { "name": "sect233k1", "dotted": "1.3.132.0.24", "emit": ["DER","VAL"] },
+    { "name": "sect233r1", "dotted": "1.3.132.0.26", "emit": ["DER","VAL"] },
+
+    { "name": "brainpoolP256r1", "dotted": "1.3.36.3.3.2.8.1.1.7", "emit": ["DER","VAL"] },
+    { "name": "brainpoolP384r1", "dotted": "1.3.36.3.3.2.8.1.1.11", "emit": ["DER","VAL"] },
+    { "name": "brainpoolP512r1", "dotted": "1.3.36.3.3.2.8.1.1.13", "emit": ["DER","VAL"] },
+
+    { "name": "X25519", "dotted": "1.3.101.110", "emit": ["DER","VAL"] },
+    { "name": "X448", "dotted": "1.3.101.111", "emit": ["DER","VAL"] },
+    { "name": "Ed25519", "dotted": "1.3.101.112", "emit": ["DER","VAL"] },
+    { "name": "Ed448", "dotted": "1.3.101.113", "emit": ["DER","VAL"] },
+
+    { "name": "dhSinglePass-stdDH-sha224kdf-scheme", "dotted": "1.3.132.1.11.1", "emit": ["DER","VAL"] },
+    { "name": "dhSinglePass-stdDH-sha256kdf-scheme", "dotted": "1.3.132.1.11.2", "emit": ["DER","VAL"] },
+    { "name": "dhSinglePass-stdDH-sha384kdf-scheme", "dotted": "1.3.132.1.11.3", "emit": ["DER","VAL"] },
+    { "name": "dhSinglePass-stdDH-sha512kdf-scheme", "dotted": "1.3.132.1.11.4", "emit": ["DER","VAL"] },
+    { "name": "dhSinglePass-cofactorDH-sha1kdf-scheme", "dotted": "1.3.132.1.12", "emit": ["DER","VAL"] },
+    { "name": "id-alg-ESDH", "dotted": "1.2.840.113549.1.9.16.3.5", "emit": ["DER","VAL"] },
+    { "name": "id-alg-SDHW", "dotted": "1.2.840.113549.1.9.16.3.16", "emit": ["DER","VAL"] },
+    { "name": "id-alg-ESDHwith3DES", "dotted": "1.2.840.113549.1.9.16.3.15", "emit": ["DER","VAL"] },
+    { "name": "id-alg-ESDHwithAES128", "dotted": "1.2.840.113549.1.9.16.3.17", "emit": ["DER","VAL"] },
+    { "name": "id-alg-ESDHwithAES192", "dotted": "1.2.840.113549.1.9.16.3.18", "emit": ["DER","VAL"] },
+    { "name": "id-alg-ESDHwithAES256", "dotted": "1.2.840.113549.1.9.16.3.19", "emit": ["DER","VAL"] },
+
+    { "name": "id-GostR3410-2001-CryptoPro-A", "dotted": "1.2.643.2.2.35.1", "emit": ["DER","VAL"] },
+    { "name": "id-GostR3410-2001-CryptoPro-B", "dotted": "1.2.643.2.2.35.2", "emit": ["DER","VAL"] },
+    { "name": "id-GostR3410-2001-CryptoPro-C", "dotted": "1.2.643.2.2.35.3", "emit": ["DER","VAL"] },
+    { "name": "id-GostR3410-2001-CryptoPro-XchA", "dotted": "1.2.643.2.2.36.0", "emit": ["DER","VAL"] },
+    { "name": "id-GostR3410-2001-CryptoPro-XchB", "dotted": "1.2.643.2.2.36.1", "emit": ["DER","VAL"] }
+  ],
+
+  "bytes": [
+    { "name": "ECC(secp256r1 param p)",  "hex": "FF FF FF FF 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF" },
+    { "name": "ECC(secp256r1 param a)",  "hex": "FF FF FF FF 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FC" },
+    { "name": "ECC(secp256r1 param b)",  "hex": "5A C6 35 D8 AA 3A 93 E7 B3 EB BD 55 76 98 86 BC 65 1D 06 B0 CC 53 B0 F6 3B CE 3C 3E 27 D2 60 4B" },
+    { "name": "ECC(secp256r1 param Gx)", "hex": "6B 17 D1 F2 E1 2C 42 47 F8 BC E6 E5 63 A4 40 F2 77 03 7D 81 2D EB 33 A0 F4 A1 39 45 D8 98 C2 96" },
+    { "name": "ECC(secp256r1 param Gy)", "hex": "4F E3 42 E2 FE 1A 7F 9B 8E E7 EB 4A 7C 0F 9E 16 2B CE 33 57 6B 31 5E CE CB B6 40 68 37 BF 51 F5" },
+    { "name": "ECC(secp256r1 param n)",  "hex": "FF FF FF FF 00 00 00 00 FF FF FF FF FF FF FF FF BC E6 FA AD A7 17 9E 84 F3 B9 CA C2 FC 63 25 51" },
+
+    { "name": "ECC(secp384r1 param p)", "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FF 00 00 00 00 00 00 00 00 FF FF FF FF" },
+    { "name": "ECC(secp384r1 param a)", "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FF 00 00 00 00 00 00 00 00 FF FF FF FC" },
+    { "name": "ECC(secp384r1 param b)", "hex": "B3 31 2F A7 E2 3E E7 E4 98 8E 05 6B E3 F8 2D 19 18 1D 9C 6E FE 81 41 12 03 14 08 8F 50 13 87 5A C6 56 39 8D 8A 2E D1 9D 2A 85 C8 ED D3 EC 2A EF" },
+    { "name": "ECC(secp384r1 param Gx)", "hex": "AA 87 CA 22 BE 8B 05 37 8E B1 C7 1E F3 20 AD 74 6E 1D 3B 62 8B A7 9B 98 59 F7 41 E0 82 54 2A 38 55 02 F2 5D BF 55 29 6C 3A 54 5E 38 72 76 0A B7" },
+    { "name": "ECC(secp384r1 param Gy)", "hex": "36 17 DE 4A 96 26 2C 6F 5D 9E 98 BF 92 92 DC 29 F8 F4 1D BD 28 9A 14 7C E9 DA 31 13 B5 F0 B8 C0 0A 60 B1 CE 1D 7E 81 9D 7A 43 1D 7C 90 EA 0E 5F" },
+    { "name": "ECC(secp384r1 param n)", "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FF 00 00 00 00 00 00 00 00 FF FF FF FF C7 63 4D 81 F4 37 2D DF 58 1A 0D B2 48 B0 A7 7A EC EC 19 6A CC C5 29 73" },
+
+    { "name": "ECC(secp521r1 param p)", "hex": "01 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF" },
+
+    { "name": "ECC(secp224r1 param p)", "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00 00 01" },
+    { "name": "ECC(secp224k1 param p)", "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF E5 6D" },
+    { "name": "ECC(secp256k1 param p)", "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FC 2F" },
+
+    { "name": "ECC(brainpoolP256r1 param p)", "hex": "A9 FB 57 DB A1 EE A9 BC 3E 66 0A 90 9D 83 8D 72 6E 3B F6 23 D5 26 20 28 20 13 48 1D 1F 6E 53 77" },
+    { "name": "ECC(brainpoolP384r1 param p)", "hex": "8C B9 1E 82 A3 38 6D 28 0F 5D 6F 7E 50 E6 41 DF 15 2F 71 09 ED 54 56 B4 12 B1 DA 19 7F B7 11 23 AC D3 A7 29 90 1D 1A 71 87 47 00 13 31 07 EC 53" },
+    { "name": "ECC(brainpoolP512r1 param p)", "hex": "AA DD 9D B8 DB E9 C4 8B 3F D4 E6 AE 33 C9 FC 07 CB 30 8D B3 B3 C9 D2 0E D6 63 9C CA 70 33 08 71 7D 4D 9B 00 9B CC 66 84 2A EC DA 12 AE 6A 38 0E 6" },
+
+    { "name": "Curve(X25519) prime p", "hex": "7F FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF ED" },
+    { "name": "Curve(X448) prime p",   "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF" },
+    { "name": "Curve(Ed25519) prime p","hex": "7F FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF ED" },
+
+    { "name": "GOSTR3410-A param p", "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FD 97" },
+    { "name": "GOSTR3410-A param a", "hex": "FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FD 94" }
+  ]
+}
