@@ -1,4 +1,4 @@
-QT += core gui widgets
+QT += widgets core
 CONFIG += c++17
 
 SOURCES += \
@@ -6,13 +6,21 @@ SOURCES += \
     CryptoScanner.cpp \
     FileScanner.cpp \
     PatternDefinitions.cpp \
-    PatternLoader.cpp
+    PatternLoader.cpp \
+    JavaASTScanner.cpp \
+    JavaBytecodeScanner.cpp \
+    PythonASTScanner.cpp \
+    CppASTScanner.cpp
 
 HEADERS += \
     CryptoScanner.h \
     FileScanner.h \
     PatternDefinitions.h \
-    PatternLoader.h
+    PatternLoader.h \
+    JavaASTScanner.h \
+    JavaBytecodeScanner.h \
+    PythonASTScanner.h \
+    CppASTScanner.h
 
 QMAKE_EXTRA_TARGETS += rebuild
 rebuild.CONFIG = phony
