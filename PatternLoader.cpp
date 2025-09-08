@@ -5,212 +5,238 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QProcessEnvironment>
-#include <QtCore/QStringList>
-#include <iostream>
+#include <QtCore/QString>
+
 #include <algorithm>
-#include <stdexcept>
+#include <cctype>
+#include <iostream>
+#include <optional>
+#include <sstream>
+
+using namespace pattern_loader;
 
 namespace {
-static std::vector<uint8_t> encodeBase128(uint32_t v){
-    std::vector<uint8_t> out;
-    do { out.push_back(static_cast<uint8_t>(v & 0x7Fu)); v >>= 7; } while (v);
-    std::reverse(out.begin(), out.end());
-    for (size_t i = 0; i + 1 < out.size(); ++i) out[i] |= 0x80u;
-    return out;
+
+static std::string qs(const QString& s){ return s.toStdString(); }
+
+static std::string getString(const QJsonObject& o, const char* key, const std::string& dflt = ""){
+    auto it = o.find(key);
+    if (it == o.end() || !it->isString()) return dflt;
+    return qs(it->toString());
 }
 
-static std::vector<uint8_t> oidValueBytes(const std::string& dotted){
-    std::vector<uint32_t> arcs; std::string tmp;
-    for(char ch : dotted){
-        if(ch == '.'){
-            if(!tmp.empty()){
-                arcs.push_back(static_cast<uint32_t>(std::stoul(tmp)));
-                tmp.clear();
+static bool getBool(const QJsonObject& o, const char* key, bool dflt=false){
+    auto it = o.find(key);
+    if (it == o.end() || !it->isBool()) return dflt;
+    return it->toBool();
+}
+
+static std::optional<std::regex> compileRegexSafe(const std::string& pat,
+                                                  bool icase,
+                                                  bool literal,
+                                                  const std::string& syntax,
+                                                  std::string& whyFailed)
+{
+    std::regex_constants::syntax_option_type flags = std::regex_constants::ECMAScript;
+    if (syntax == "extended") flags = std::regex_constants::extended;
+    if (syntax == "basic")    flags = std::regex_constants::basic;
+    if (icase) flags = static_cast<std::regex_constants::syntax_option_type>(flags | std::regex_constants::icase);
+
+    std::string actual = pat;
+    if (literal) {
+        static const std::string metas = R"(\\.^$|()[]{}*+?!)";
+        std::string esc; esc.reserve(actual.size()*2);
+        for(char ch: actual){
+            if (metas.find(ch) != std::string::npos) esc.push_back('\\');
+            esc.push_back(ch);
+        }
+        actual.swap(esc);
+    }
+
+    try {
+        return std::regex(actual, flags);
+    } catch (const std::regex_error& e) {
+        whyFailed = e.what();
+    } catch (const std::exception& e) {
+        whyFailed = e.what();
+    } catch (...) {
+        whyFailed = "unknown regex compile error";
+    }
+    return std::nullopt;
+}
+
+static std::vector<uint8_t> parseHexBytes(const std::string& s){
+    std::vector<uint8_t> out;
+    std::string tok;
+    tok.reserve(2);
+    auto ishex = [](char c){ return std::isxdigit(static_cast<unsigned char>(c)); };
+    for(char c : s){
+        if (ishex(c)){
+            tok.push_back(c);
+            if (tok.size()==2){
+                out.push_back(static_cast<uint8_t>(std::stoul(tok, nullptr, 16)));
+                tok.clear();
             }
         }else{
-            tmp.push_back(ch);
+            if (c=='x' || c=='X') tok.clear();
         }
     }
-    if(!tmp.empty()) arcs.push_back(static_cast<uint32_t>(std::stoul(tmp)));
-    if(arcs.size() < 2) throw std::runtime_error("OID requires at least two arcs");
-    std::vector<uint8_t> val;
-    val.push_back(static_cast<uint8_t>(arcs[0]*40 + arcs[1]));
-    for(size_t i=2;i<arcs.size();++i){
-        auto enc = encodeBase128(arcs[i]);
-        val.insert(val.end(), enc.begin(), enc.end());
-    }
-    return val;
-}
-
-static std::vector<uint8_t> oidDERBytes(const std::string& dotted){
-    auto val = oidValueBytes(dotted);
-    std::vector<uint8_t> out;
-    out.push_back(0x06u);
-    if(val.size() <= 127){
-        out.push_back(static_cast<uint8_t>(val.size()));
-    }else{
-        std::vector<uint8_t> lenBytes;
-        size_t n = val.size();
-        while(n > 0){ lenBytes.push_back(static_cast<uint8_t>(n & 0xFFu)); n >>= 8; }
-        std::reverse(lenBytes.begin(), lenBytes.end());
-        out.push_back(static_cast<uint8_t>(0x80u | lenBytes.size()));
-        out.insert(out.end(), lenBytes.begin(), lenBytes.end());
-    }
-    out.insert(out.end(), val.begin(), val.end());
     return out;
 }
 
-// Parse hex string to bytes. Accepts spaces/colons/hyphens/commas and optional "0x".
-static bool parseHex(const QString& s, std::vector<uint8_t>& out){
-    QString c = s;
-    c.replace("0x","",Qt::CaseInsensitive).remove(' ').remove(':').remove('-').remove(',');
-    if(c.size() % 2) {
-        return false;
-    }
-    out.clear();
-    out.reserve(static_cast<size_t>(c.size()/2));
-    for(int i=0;i<c.size(); i+=2){
-        bool ok=false;
-        uint8_t b = static_cast<uint8_t>(c.mid(i,2).toUInt(&ok,16));
-        if(!ok) return false;
-        out.push_back(b);
-    }
-    return true;
-}
 } // namespace
 
 namespace pattern_loader {
 
-static bool loadJsonObject(const QString& path, QJsonObject& root, std::string& err){
-    QFile f(path);
-    if(!f.open(QIODevice::ReadOnly)){
-        err = "Failed to open " + path.toStdString();
-        return false;
-    }
-    auto doc = QJsonDocument::fromJson(f.readAll());
-    if(doc.isNull() || !doc.isObject()){
-        err = "Invalid JSON in " + path.toStdString();
-        return false;
-    }
-    root = doc.object();
-    return true;
-}
-
 LoadResult loadFromJson(){
-    LoadResult R;
-    const auto env = QProcessEnvironment::systemEnvironment();
-    const QString envPath = env.value("CRYPTO_SCANNER_PATTERNS");
-    QStringList candidates;
-    if(!envPath.isEmpty()) candidates << envPath;
-    candidates << "patterns.json" << "config/patterns.json";
-
-    for(const auto& c : candidates){
-        QJsonObject root; std::string err;
-        if(loadJsonObject(c, root, err)){
-            return loadFromJsonFile(c.toStdString());
-        }
-    }
-    R.error = "Pattern JSON not found. Tried ENV:CRYPTO_SCANNER_PATTERNS, ./patterns.json, ./config/patterns.json";
-    return R;
+    QString p;
+    auto env = QProcessEnvironment::systemEnvironment();
+    if (env.contains("CRYPTO_PATTERNS")) p = env.value("CRYPTO_PATTERNS");
+    else                                 p = "patterns.json";
+    return loadFromJsonFile(p.toStdString());
 }
 
 LoadResult loadFromJsonFile(const std::string& path){
     LoadResult R;
-    QJsonObject root;
-    if(!loadJsonObject(QString::fromStdString(path), root, R.error)) return R;
-
-    // regex
-    if(root.contains("regex") && root["regex"].isArray()){
-        const auto arr = root["regex"].toArray();
-        for(const auto& v : arr){
-            if(!v.isObject()){
-                continue;
-            }
-            const auto o = v.toObject();
-            const auto name = o.value("name").toString();
-            const auto patt = o.value("pattern").toString();
-            const bool icase = o.value("icase").toBool(true);
-            if(name.isEmpty() || patt.isEmpty()){
-                continue;
-            }
-            try{
-                auto flags = std::regex_constants::ECMAScript;
-                if(icase) flags = static_cast<std::regex_constants::syntax_option_type>(flags | std::regex_constants::icase);
-                std::regex rx(patt.toStdString(), flags);
-                R.regexPatterns.push_back({ name.toStdString(), rx });
-            }catch(const std::exception& e){
-                std::cerr << "[PatternLoader] Bad regex '" << name.toStdString() << "': " << e.what() << "\n";
-            }
-        }
-    }
-
-    // bytes
-    if(root.contains("bytes") && root["bytes"].isArray()){
-        const auto arr = root["bytes"].toArray();
-        for(const auto& v : arr){
-            if(!v.isObject()){
-                continue;
-            }
-            const auto o = v.toObject();
-            const auto name = o.value("name").toString();
-            const auto hex  = o.value("hex").toString();
-            if(name.isEmpty() || hex.isEmpty()){
-                continue;
-            }
-            std::vector<uint8_t> b;
-            if(!parseHex(hex, b)){
-                std::cerr << "[PatternLoader] Bad hex for '" << name.toStdString() << "'\n";
-                continue;
-            }
-            R.bytePatterns.push_back({ name.toStdString(), std::move(b) });
-        }
-    }
-
-    // oids
-    if(root.contains("oids") && root["oids"].isArray()){
-        const auto arr = root["oids"].toArray();
-        for(const auto& v : arr){
-            if(!v.isObject()){
-                continue;
-            }
-            const auto o = v.toObject();
-            const auto name   = o.value("name").toString();
-            const auto dotted = o.value("dotted").toString();
-            QStringList emitList;
-            if(o.contains("emit") && o["emit"].isArray()){
-                for(const auto& e : o["emit"].toArray()){
-                    emitList << e.toString();
-                }
-                if(emitList.isEmpty()){
-                    emitList << "DER" << "VAL";
-                }
-            }else{
-                emitList << "DER" << "VAL";
-            }
-
-            if(name.isEmpty() || dotted.isEmpty()){
-                continue;
-            }
-            try{
-                const std::string dot = dotted.toStdString();
-                for(const auto& m : emitList){
-                    if(m.compare("DER", Qt::CaseInsensitive) == 0){
-                        auto der = oidDERBytes(dot);
-                        R.bytePatterns.push_back({ "OID: " + name.toStdString() + " (" + dot + ") [DER]", std::move(der) });
-                    }else if(m.compare("VAL", Qt::CaseInsensitive) == 0){
-                        auto val = oidValueBytes(dot);
-                        R.bytePatterns.push_back({ "OID: " + name.toStdString() + " (" + dot + ") [VAL]", std::move(val) });
-                    }
-                }
-            }catch(const std::exception& e){
-                std::cerr << "[PatternLoader] OID '" << name.toStdString()
-                          << "' parse error: " << e.what() << "\n";
-            }
-        }
-    }
-
     R.sourcePath = path;
+
+    QFile f(QString::fromStdString(path));
+    if(!f.open(QIODevice::ReadOnly)){
+        R.error = "Cannot open " + path;
+        return R;
+    }
+    const QByteArray raw = f.readAll();
+    f.close();
+
+    QJsonParseError perr{};
+    auto doc = QJsonDocument::fromJson(raw, &perr);
+    if (perr.error != QJsonParseError::NoError || !doc.isObject()){
+        R.error = std::string("JSON parse error at offset ")
+                + std::to_string(perr.offset) + ": "
+                + qs(perr.errorString());
+        return R;
+    }
+
+    const QJsonObject root = doc.object();
+    std::ostringstream warn;
+
+    if (root.contains("regex") && root["regex"].isArray()){
+        for(const auto& v : root["regex"].toArray()){
+            if(!v.isObject()) continue;
+            const auto o = v.toObject();
+
+            const std::string name   = getString(o, "name", "");
+            const std::string pat    = getString(o, "pattern", "");
+            const bool icase         = getBool(o, "icase", true);
+            const bool literal       = getBool(o, "literal", false);
+            const std::string syntax = getString(o, "syntax", "ECMAScript");
+
+            if(name.empty() || pat.empty()) continue;
+
+            std::string why;
+            auto rx = compileRegexSafe(pat, icase, literal, syntax, why);
+            if (rx){
+                AlgorithmPattern ap;
+                ap.name    = name;
+                ap.pattern = std::move(*rx);
+                R.regexPatterns.push_back(std::move(ap));
+            }else{
+                warn << "[regex] skip '" << name << "': " << why << "\n";
+            }
+        }
+    }
+
+    if (root.contains("bytes") && root["bytes"].isArray()){
+        for(const auto& v : root["bytes"].toArray()){
+            if(!v.isObject()) continue;
+            const auto o = v.toObject();
+
+            const std::string name = getString(o, "name", "");
+            const std::string hex  = getString(o, "hex", "");
+            if(name.empty() || hex.empty()) continue;
+
+            BytePattern bp;
+            bp.name  = name;
+            bp.bytes = parseHexBytes(hex);
+            if(!bp.bytes.empty()){
+                R.bytePatterns.push_back(std::move(bp));
+            }else{
+                warn << "[bytes] empty for '" << name << "'\n";
+            }
+        }
+    }
+
+    if (root.contains("ast_rules") && root["ast_rules"].isArray()){
+        for(const auto& v : root["ast_rules"].toArray()){
+            if(!v.isObject()) continue;
+            const auto o = v.toObject();
+
+            AstRule ar;
+            ar.id        = getString(o, "id", "");
+            ar.lang      = getString(o, "lang", "");
+            ar.kind      = getString(o, "kind", "");
+            ar.callee    = getString(o, "callee", "");
+            if (o.contains("callees") && o["callees"].isArray()){
+                for(const auto& vv : o["callees"].toArray()){
+                    if(vv.isString()) ar.callees.push_back(qs(vv.toString()));
+                }
+            }
+            ar.arg_index      = o.contains("arg_index") ? o["arg_index"].toInt(-1) : -1;
+            ar.kw             = getString(o, "kw", "");
+            ar.kw_value_regex = getString(o, "kw_value_regex", "");
+            ar.arg_regex      = getString(o, "arg_regex", "");
+            ar.message        = getString(o, "message", "");
+            ar.severity       = getString(o, "severity", "");
+
+            R.astRules.push_back(std::move(ar));
+        }
+    }
+
+    R.error = warn.str();
     return R;
+}
+
+static std::string jescape(const std::string& s){
+    std::string out; out.reserve(s.size()+8);
+    for(unsigned char c: s){
+        switch(c){
+            case '\\': out += "\\\\"; break;
+            case '"':  out += "\\\""; break;
+            case '\n': out += "\\n"; break;
+            case '\r': out += "\\r"; break;
+            case '\t': out += "\\t"; break;
+            default:
+                if(c < 0x20){
+                    char buf[7];
+                    std::snprintf(buf, sizeof(buf), "\\u%04x", (int)c);
+                    out += buf;
+                }else out.push_back((char)c);
+        }
+    }
+    return out;
+}
+
+std::string AstRule::toJson() const {
+    std::ostringstream os;
+    os << "{"
+       << "\"id\":\""        << jescape(id)        << "\","
+       << "\"lang\":\""      << jescape(lang)      << "\","
+       << "\"kind\":\""      << jescape(kind)      << "\","
+       << "\"callee\":\""    << jescape(callee)    << "\","
+       << "\"callees\":[";
+    for(size_t i=0;i<callees.size();++i){
+        if(i) os << ",";
+        os << "\"" << jescape(callees[i]) << "\"";
+    }
+    os << "],"
+       << "\"arg_index\":"   << arg_index << ","
+       << "\"kw\":\""        << jescape(kw)        << "\","
+       << "\"kw_value_regex\":\"" << jescape(kw_value_regex) << "\","
+       << "\"arg_regex\":\"" << jescape(arg_regex) << "\","
+       << "\"message\":\""   << jescape(message)   << "\","
+       << "\"severity\":\""  << jescape(severity)  << "\""
+       << "}";
+    return os.str();
 }
 
 } // namespace pattern_loader
