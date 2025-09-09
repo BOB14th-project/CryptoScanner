@@ -153,11 +153,13 @@ LoadResult loadFromJsonFile(const std::string& path){
 
             const std::string name = getString(o, "name", "");
             const std::string hex  = getString(o, "hex", "");
+            const std::string type = getString(o, "type", "bytes");
             if(name.empty() || hex.empty()) continue;
 
             BytePattern bp;
             bp.name  = name;
             bp.bytes = parseHexBytes(hex);
+            bp.type  = type;
             if(!bp.bytes.empty()){
                 R.bytePatterns.push_back(std::move(bp));
             }else{
