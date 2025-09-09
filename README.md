@@ -42,11 +42,11 @@ make rebuild
 
 ### 📁 파일 별 역할
 | 경로 | 역할 |
-|---|:---:|
+|:---:|:---:|
 | `CryptoScanner.pro` | qmake 프로젝트 파일, `rebuild` 타깃 등 빌드 설정 포함 |
-| `gui_main_linux.cpp` | GUI, 파일/폴더 선택, 하위 폴더 포함 옵션, 스캔 실행, 결과 테이블/CSV 내보내기, 헥스 프리뷰, 툴 배지(javap/jadx/python3/clang) 표시 |
-| `CryptoScanner.h/.cpp` | 경로 단위 스캔, 결과 수집/정규화, CSV 저장, 환경변수(`CRYPTO_PATTERNS`, `CRYPTO_SCANNER_JADX_MAXMB`) 처리, 파일 유형별 라우팅과 심각도 규칙 적용 |
-| `FileScanner.h/.cpp` | 파일 열기/부분 읽기, 문자열 추출, 바이트 시그니처/정규식 매칭, 확장자·매직 넘버 기반 타입 식별, ZIP/JAR 엔트리 나열 및 엔트리 단위 스캔, 헥스 프리뷰(오프셋 주변 바이트) 제공 |
+| `gui_main_linux.cpp` | GUI |
+| `CryptoScanner.h/.cpp` | 경로 단위 스캔, 결과 수집/정규화, CSV 저장 |
+| `FileScanner.h/.cpp` | 파일 열기/부분 읽기, 문자열 추출, 바이트 시그니처/정규식 매칭  |
 | `PatternLoader.h/.cpp` | `patterns.json` 로딩/검증, 정규식 컴파일 옵션 처리 |
 | `PatternDefinitions.h/.cpp` | 호환성/참고용으로 유지될 수 있음(아직 큰 역할 없음, 풀백으로 사용 고민) |
 | `JavaASTScanner.h/.cpp` | Java 소스 코드 정적 규칙 탐지 |
