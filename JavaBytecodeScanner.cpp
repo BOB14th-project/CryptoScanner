@@ -12,8 +12,9 @@ namespace fs = std::filesystem;
 
 namespace analyzers {
 
-static void add(std::vector<Detection>& v, const std::string& path, size_t line, const std::string& alg, const std::string& ev){
-    v.push_back({ path, line, alg, ev });
+static void add(std::vector<Detection>& v, const std::string& path, size_t line,
+                const std::string& alg, const std::string& ev, const std::string& sev){
+    v.push_back({ path, line, alg, ev, "bytecode", sev.empty()? "med" : sev });
 }
 static std::string toJavapCallee(const std::string& callee){
     std::string cls, m; auto p=callee.find('.'); if(p==std::string::npos) return {};
@@ -65,7 +66,7 @@ static void parseJavapVerbose(const std::string& displayName, const std::string&
                     ok = reArg.isValid() && reArg.match(QString::fromStdString(s)).hasMatch();
                 }
                 if(ok){
-                    add(out, displayName, i+1, r.message, s.empty()? "bytecode":"bytecode:"+s);
+                    add(out, displayName, i+1, r.message, s.empty()? "bytecode":"bytecode:"+s, r.severity);
                 }
             }
         }
@@ -80,7 +81,7 @@ static void parseJavapVerbose(const std::string& displayName, const std::string&
             for(size_t j=start;j<end;++j){
                 std::smatch mb;
                 if(std::regex_search(lines[j], mb, reLdcInt)){
-                    add(out, displayName, i+1, "KeyPairGenerator.bits", mb.str(1));
+                    add(out, displayName, i+1, "KeyPairGenerator.bits", mb.str(1), "med");
                     break;
                 }
             }
