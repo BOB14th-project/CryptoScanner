@@ -11,8 +11,9 @@ namespace fs = std::filesystem;
 
 namespace analyzers {
 
-static void add(std::vector<Detection>& v, const std::string& path, size_t line, const std::string& alg, const std::string& ev){
-    v.push_back({ path, line, alg, ev });
+static void add(std::vector<Detection>& v, const std::string& path, size_t line,
+                const std::string& alg, const std::string& ev, const std::string& sev){
+    v.push_back({ path, line, alg, ev, "ast", sev.empty()? "med" : sev });
 }
 static bool readAll(const std::string& p, std::string& out){
     std::ifstream in(p, std::ios::binary); if(!in) return false;
@@ -58,9 +59,9 @@ static std::vector<Detection> tryClangAST(const std::string& path, const std::ve
                                 for(size_t k=j;k<end;++k){
                                     std::smatch m; if(std::regex_search(lines[k], m, intRx)){ bits=m.str(1); break; }
                                 }
-                                add(out, path, ln?ln:1, r.message, bits.empty()? fn : bits);
+                                add(out, path, ln?ln:1, r.message, bits.empty()? fn : bits, r.severity);
                             }else{
-                                add(out, path, ln?ln:1, r.message, fn);
+                                add(out, path, ln?ln:1, r.message, fn, r.severity);
                             }
                             break;
                         }
@@ -78,7 +79,7 @@ static std::vector<Detection> fallbackLexical(const std::string& path, const std
     std::istringstream iss(code);
     std::string line; size_t ln=0;
 
-    struct R { std::regex call; std::regex arg; bool chkArg; std::string msg; };
+    struct R { std::regex call; std::regex arg; bool chkArg; std::string msg; std::string sev; };
     std::vector<R> RR;
     for(const auto& r: rules){
         if(r.lang!="cpp") continue;
@@ -86,7 +87,7 @@ static std::vector<Detection> fallbackLexical(const std::string& path, const std
         if(callees.empty() && !r.callee.empty()) callees.push_back(r.callee);
         for(const auto& fn : callees){
             std::string patt = std::string("\\b") + fn + "\\s*\\(";
-            R x{ std::regex(patt), std::regex(), false, r.message };
+            R x{ std::regex(patt), std::regex(), false, r.message, r.severity.empty()? "med": r.severity };
             if(!r.arg_regex.empty()){
                 x.chkArg = true; x.arg = std::regex(r.arg_regex, std::regex::ECMAScript|std::regex::icase);
             }
@@ -99,7 +100,7 @@ static std::vector<Detection> fallbackLexical(const std::string& path, const std
         for(const auto& x: RR){
             if(std::regex_search(line, x.call)){
                 if(!x.chkArg || std::regex_search(line, x.arg)){
-                    add(out, path, ln, x.msg, "call");
+                    add(out, path, ln, x.msg, "call", x.sev);
                 }
             }
         }
@@ -107,13 +108,13 @@ static std::vector<Detection> fallbackLexical(const std::string& path, const std
         {
             std::smatch m;
             if(std::regex_search(line, m, std::regex(R"(RSA_generate_key_ex\s*\([^,]+,\s*(\d{3,5})\s*,)"))){
-                add(out, path, ln, "RSA keygen bits", m.str(1));
+                add(out, path, ln, "RSA keygen bits", m.str(1), "med");
             }
             if(std::regex_search(line, m, std::regex(R"(EVP_PKEY_CTX_set_rsa_keygen_bits\s*\([^,]+,\s*(\d{3,5})\s*\))"))){
-                add(out, path, ln, "RSA keygen bits", m.str(1));
+                add(out, path, ln, "RSA keygen bits", m.str(1), "med");
             }
             if(std::regex_search(line, m, std::regex(R"(EC_KEY_new_by_curve_name\s*\(\s*(NID_[A-Za-z0-9_]+)\s*\))"))){
-                add(out, path, ln, "EC curve", m.str(1));
+                add(out, path, ln, "EC curve", m.str(1), "info");
             }
         }
     }

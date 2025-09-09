@@ -31,8 +31,10 @@ static std::string resolveArg(const std::string& token, const std::unordered_map
     auto it=C.find(token); if(it!=C.end()) return it->second; return {};
 }
 
-static void add(std::vector<Detection>& v, const std::string& path, size_t line, const std::string& alg, const std::string& ev){
-    v.push_back({ path, line, alg, ev });
+static void add(std::vector<Detection>& v, const std::string& path, size_t line,
+                const std::string& alg, const std::string& ev,
+                const std::string& sev){
+    v.push_back({ path, line, alg, ev, "ast", sev.empty()? "med": sev });
 }
 
 static std::string calleeToRegex(const std::string& callee){
@@ -63,6 +65,7 @@ std::vector<Detection> JavaASTScanner::scanSource(const std::string& displayPath
         bool hasArg=false;
         bool isCtor=false;
         std::string msg;
+        std::string sev;
     };
 
     std::vector<Comp> comps;
@@ -74,6 +77,7 @@ std::vector<Detection> JavaASTScanner::scanSource(const std::string& displayPath
         Comp c;
         c.isCtor = (r.kind=="ctor_call" || r.kind=="ctor");
         c.msg    = r.message;
+        c.sev    = r.severity.empty()? "med" : r.severity;
 
         if(!r.arg_regex.empty()){
             c.hasArg = true;
@@ -109,7 +113,7 @@ std::vector<Detection> JavaASTScanner::scanSource(const std::string& displayPath
                     ok = c.arg.isValid() && res.hasMatch();
                 }
                 if(ok){
-                    add(out, displayPath, ln, c.msg, (!val.empty()? val : "call"));
+                    add(out, displayPath, ln, c.msg, (!val.empty()? val : "call"), c.sev);
                 }
             }
         }
