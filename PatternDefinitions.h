@@ -13,6 +13,7 @@ struct AlgorithmPattern {
 struct BytePattern {
     std::string name;
     std::vector<uint8_t> bytes;
+    std::string type;
 };
 
 namespace crypto_patterns {
