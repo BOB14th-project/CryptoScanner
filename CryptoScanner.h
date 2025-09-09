@@ -11,6 +11,8 @@ struct Detection {
     std::size_t offset;
     std::string algorithm;
     std::string matchString;
+    std::string evidenceType;
+    std::string severity;
 };
 
 class CryptoScanner {
@@ -41,10 +43,12 @@ private:
     std::vector<Detection> scanPythonSourceFileDetailed(const std::string& filePath);
     std::vector<Detection> scanCppSourceFileDetailed(const std::string& filePath);
 
+    // Certificates / Keys (X.509 / CSR / PKCS#8)
+    std::vector<Detection> scanCertOrKeyFileDetailed(const std::string& filePath);
+
     // jar helpers
     std::vector<Detection> scanJarViaMiniZ(const std::string& filePath);
     std::vector<Detection> scanJarViaUnzip(const std::string& filePath);
-
     std::vector<Detection> scanJarViaJarTool(const std::string& filePath);
 
     std::vector<Detection> scanBinaryFileHeaderLimited(const std::string& filePath, std::size_t maxBytes);
@@ -54,4 +58,8 @@ private:
 
     static std::uintmax_t getFileSizeSafe(const std::string& path);
     static std::size_t getJadxMaxBytes();
+
+    static bool isLikelyPem(const std::string& path);
+    static bool isCertOrKeyExt(const std::string& ext);
+    static std::string lowercaseExt(const std::string& p);
 };
