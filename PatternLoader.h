@@ -39,3 +39,4 @@ LoadResult loadFromJson();
 LoadResult loadFromJsonFile(const std::string& path);
 
 } // namespace pattern_loader
+ 

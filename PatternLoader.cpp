@@ -242,3 +242,4 @@ std::string AstRule::toJson() const {
 }
 
 } // namespace pattern_loader
+ 
