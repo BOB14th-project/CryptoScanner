@@ -20,3 +20,4 @@ namespace crypto_patterns {
     std::vector<AlgorithmPattern> getDefaultPatterns();        // from JSON
     std::vector<BytePattern>      getDefaultOIDBytePatterns(); // from JSON
 }
+ 

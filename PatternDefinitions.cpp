@@ -20,3 +20,4 @@ std::vector<BytePattern> getDefaultOIDBytePatterns() {
 }
 
 } // namespace crypto_patterns
+ 
