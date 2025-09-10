@@ -1,7 +1,7 @@
 # CryptoScanner
 
-### 💻 GUI Beta (2025.09.10. ver)
-<img width="1918" height="875" alt="image" src="https://github.com/user-attachments/assets/d3ccd4b2-ff03-479c-9be0-2b1bb529ae55" />
+### 💻 GUI Beta (2025.09.11. ver)
+<img width="1728" height="1046" alt="스크린샷 2025-09-11 03 59 05" src="https://github.com/user-attachments/assets/3be1a0ca-784e-4beb-b05f-68012673e063" />
 
 
 ### 🔧 첫 설치
@@ -14,12 +14,6 @@ make -j"$(nproc)"
 ```
 
 
-### 🔧 패키지 설치
-``` bash
-sudo apt install -y jadx || true // JADX 패키지 미설치 시 실행
-```
-
-
 ### 🔧 재빌드
 ``` bash
 make rebuild
@@ -27,11 +21,10 @@ make rebuild
 
 
 ### 🚀 CryptoScanner 사용 방법
-1. GUI 상단에서 현재 설치된 도구 배지를 확인 (javap/jadx/python3/clang)
-2. `파일 선택` 혹은 `폴더 선택`을 눌러 대상 지정 → 필요 시 하위 폴더 포함 체크
-3. `스캔 버튼` 클릭 → 하단 표 확인
-4. 행을 더블클릭 → 오프셋 주변 바이트를 헥스 덤프로 확인 가능
-5. `결과 저장` → `./result/crypto_scan_YYYYMMDD_HHmmss.csv` 저장
+1. `파일 선택` 혹은 `폴더 선택`을 눌러 대상 지정 → 필요 시 하위 폴더 포함 체크
+2. `스캔 버튼` 클릭 → 하단 표 확인
+3. 행을 더블클릭 → 오프셋 주변 바이트를 헥스 덤프로 확인 가능
+4. `결과 저장` → `./result/YYYYMMDD_HHmmss.csv` 저장
 
 
 ### 🔍`patterns.json` 정적(패턴) 탐지 로직
