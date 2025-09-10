@@ -369,6 +369,46 @@
       "name": "Java: initialize(weak key size) (line direct)",
       "pattern": "\\binitialize\\s*\\((512|768|1024)\\)\\s*;?",
       "icase": false
+    },
+    {
+      "name": "OID dotted (sha1WithRSAEncryption)",
+      "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\.5\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (dsa)",
+      "pattern": "\\b1\\.2\\.840\\.10040\\.4\\.1\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (dsaWithSHA1)",
+      "pattern": "\\b1\\.2\\.840\\.10040\\.4\\.3\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ecdsa-with-SHA1)",
+      "pattern": "\\b1\\.2\\.840\\.10045\\.4\\.1\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ecdsa-with-SHA384)",
+      "pattern": "\\b1\\.2\\.840\\.10045\\.4\\.3\\.3\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ecdsa-with-SHA512)",
+      "pattern": "\\b1\\.2\\.840\\.10045\\.4\\.3\\.4\\b",
+      "icase": true
+    },
+    {
+      "name": "X25519 basepoint u=9",
+      "pattern": "\\bu\\s*=\\s*9\\b",
+      "icase": true
+    },
+    {
+      "name": "X448 basepoint u=5",
+      "pattern": "\\bu\\s*=\\s*5\\b",
+      "icase": true
     }
   ],
   "bytes": [
@@ -976,6 +1016,77 @@
       "message": "C/C++: DES/RC4 usage",
       "severity": "high",
       "callee": ""
+    },
+    {
+      "id": "java_ecgen_weak_curve",
+      "lang": "java",
+      "kind": "ctor",
+      "callee": "java.security.spec.ECGenParameterSpec",
+      "arg_regex": "(?i)secp112r1|secp112r2|secp128r1|secp128r2|secp160k1|secp160r1|secp160r2|secp192k1|sect[0-9]+k[0-9]+",
+      "message": "Java: ECGenParameterSpec(weak curve)",
+      "severity": "med"
+    },
+    {
+      "id": "py_rsa_generate_small_bits",
+      "lang": "python",
+      "kind": "call_fullname+arg",
+      "callee": "Crypto.PublicKey.RSA.generate",
+      "arg_regex": "^(512|768|1024)$",
+      "message": "Python: RSA.generate(bits <= 1024)",
+      "severity": "med"
+    },
+    {
+      "id": "py_ecdsa_sha1",
+      "lang": "python",
+      "kind": "call_fullname+arg",
+      "callee": "cryptography.hazmat.primitives.asymmetric.ec.ECDSA",
+      "arg_regex": "(?i)SHA1",
+      "message": "Python: ECDSA(hashes.SHA1())",
+      "severity": "med"
+    },
+    {
+      "id": "cpp_rsa_e_small_e",
+      "lang": "cpp",
+      "kind": "call",
+      "callees": [
+        "BN_set_word"
+      ],
+      "arg_regex": "BN_set_word\\s*\\([^,]+,\\s*(3|17)\\s*\\)",
+      "message": "C/C++: RSA public exponent 3/17",
+      "severity": "high"
+    },
+    {
+      "id": "cpp_dh_small_bits",
+      "lang": "cpp",
+      "kind": "call",
+      "callees": [
+        "DH_generate_parameters_ex"
+      ],
+      "arg_regex": "DH_generate_parameters_ex\\s*\\([^,]+,\\s*(512|768|1024)\\s*,",
+      "message": "C/C++: DH small modulus bits",
+      "severity": "med"
+    },
+    {
+      "id": "cpp_pss_mgf1_sha1",
+      "lang": "cpp",
+      "kind": "call",
+      "callees": [
+        "EVP_PKEY_CTX_set_rsa_mgf1_md"
+      ],
+      "arg_regex": "\\bEVP_sha1\\b",
+      "message": "C/C++: RSA-PSS MGF1 with SHA-1",
+      "severity": "med"
+    },
+    {
+      "id": "cpp_sig_sha1",
+      "lang": "cpp",
+      "kind": "call",
+      "callees": [
+        "EVP_PKEY_CTX_set_signature_md"
+      ],
+      "arg_regex": "\\bEVP_sha1\\b",
+      "message": "C/C++: Signature with SHA-1",
+      "severity": "med"
     }
   ]
 }
