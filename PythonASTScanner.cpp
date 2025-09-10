@@ -1,141 +1,130 @@
 #include "PythonASTScanner.h"
 #include "PatternLoader.h"
 
-#include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <regex>
+#include <string>
+#include <vector>
 
-namespace fs = std::filesystem;
+namespace {
+
+std::string strip_py_comments(const std::string& s) {
+    std::string out; out.reserve(s.size());
+    bool in_str=false; char q=0; int triple=0;
+    for (size_t i=0;i<s.size();) {
+        char c=s[i];
+        if (!in_str) {
+            if ((c=='\'' || c=='"')) {
+                size_t j=i; int cnt=0;
+                while (j<s.size() && s[j]==c && cnt<3){ ++j; ++cnt; }
+                if (cnt==3) { in_str=true; q=c; triple=1; out.append(3, c); i+=3; continue; }
+                in_str=true; q=c; triple=0; out.push_back(c); ++i; continue;
+            }
+            if (c=='#') {
+                while (i<s.size() && s[i]!='\n') ++i;
+                if (i<s.size()) out.push_back('\n'), ++i;
+                continue;
+            }
+            out.push_back(c); ++i;
+        } else {
+            if (c=='\\' && i+1<s.size()) { out.push_back(c); out.push_back(s[i+1]); i+=2; continue; }
+            out.push_back(c); ++i;
+            if (!triple) {
+                if (c==q) { in_str=false; q=0; }
+            } else {
+                if (c==q && i+2<=s.size() && s[i]==q && s[i+1]==q) {
+                    out.push_back(q); out.push_back(q); i+=2; in_str=false; q=0; triple=0;
+                }
+            }
+        }
+    }
+    return out;
+}
+
+size_t lineno_at(const std::string& s, size_t pos){
+    size_t ln=1; for(size_t i=0;i<pos && i<s.size();++i) if(s[i]=='\n') ++ln; return ln;
+}
+
+std::regex make_py_fullname_rx(const std::string& name) {
+    std::string rx="\\b";
+    for(char ch: name){
+        if (ch=='.') rx += "\\s*\\.\\s*";
+        else if (std::isalnum((unsigned char)ch) || ch=='_') rx.push_back(ch);
+        else { rx.push_back('\\'); rx.push_back(ch); }
+    }
+    rx += "\\s*\\(";
+    return std::regex(rx, std::regex::ECMAScript | std::regex::icase);
+}
+
+} // namespace
 
 namespace analyzers {
 
-static std::string writeTempPy(){
-    const std::string tmpRoot = CryptoScanner::makeTempDir();
-    if(tmpRoot.empty()) return {};
-    const std::string py = tmpRoot + "/py_ast_analyzer.py";
-    std::ofstream o(py);
-    o <<
-R"(import ast, sys, json, re
-
-RULES = json.loads(sys.stdin.read())
-
-def fullname(node):
-    if isinstance(node, ast.Attribute):
-        base = fullname(node.value)
-        if base: return base + "." + node.attr
-        return node.attr
-    elif isinstance(node, ast.Name):
-        return node.id
-    return ""
-
-def get_kw(kws, key):
-    for kw in kws:
-        if isinstance(kw, ast.keyword) and kw.arg==key:
-            return kw
-    return None
-
-class V(ast.NodeVisitor):
-    def __init__(self): self.out=[]
-    def visit_Call(self, node: ast.Call):
-        fn = fullname(node.func)
-        def arg_text(idx):
-            if idx < len(node.args):
-                a=node.args[idx]
-                if isinstance(a, ast.Constant) and isinstance(a.value, str):
-                    return a.value
-                if isinstance(a, ast.Constant) and isinstance(a.value, int):
-                    return str(a.value)
-            return ""
-        for r in RULES:
-            if r.get("lang")!="python": continue
-            kind = r.get("kind","")
-            cal  = r.get("callee","")
-            msg  = r.get("message","rule")
-            sev  = r.get("severity","med")
-            if kind=="call_fullname" and fn==cal:
-                self.out.append((node.lineno, msg, sev, cal))
-            elif kind=="call_fullname+arg" and fn==cal:
-                s = arg_text(0)
-                arg_rx = r.get("arg_regex","")
-                if arg_rx and re.search(arg_rx, s or "", re.I):
-                    self.out.append((node.lineno, msg, sev, s))
-            elif kind=="call_fullname+intarg" and fn==cal:
-                s = arg_text(r.get("arg_index",0))
-                if s.isdigit():
-                    self.out.append((node.lineno, msg, sev, s))
-            elif kind=="call_fullname+kwcheck" and fn==cal:
-                kw = get_kw(node.keywords, r.get("kw","mode"))
-                if kw and isinstance(kw.value, ast.Attribute):
-                    kval = fullname(kw.value)
-                elif kw and isinstance(kw.value, ast.Name):
-                    kval = kw.value.id
-                else:
-                    kval = ""
-                if re.search(r.get("kw_value_regex",""), kval or "", re.I):
-                    self.out.append((node.lineno, msg, sev, kval))
-        self.generic_visit(node)
-
-def main():
-    p = sys.argv[1]
-    with open(p, "r", encoding="utf-8", errors="ignore") as f:
-        src = f.read()
-    try:
-        t = ast.parse(src, filename=p)
-    except Exception:
-        return
-    v=V(); v.visit(t)
-    for (ln, msg, sev, ev) in v.out:
-        sys.stdout.write(f"DETECT\t{ln}\t{msg}\t{sev}\t{ev}\n")
-
-if __name__=="__main__": main()
-)";
-    o.close();
-    return py;
+static void add(std::vector<Detection>& v, const std::string& path, size_t line,
+                const std::string& alg, const std::string& ev, const std::string& sev){
+    v.push_back({ path, line, alg, ev, "ast", sev.empty()? "med" : sev });
 }
 
 std::vector<Detection> PythonASTScanner::scanFile(const std::string& path){
     std::vector<Detection> out;
-    if(!CryptoScanner::toolExists("python3")) return out;
+    std::ifstream in(path, std::ios::binary);
+    if(!in) return out;
+    std::ostringstream ss; ss<<in.rdbuf();
+    std::string code = ss.str();
+    std::string cleaned = strip_py_comments(code);
 
     auto LR = pattern_loader::loadFromJson();
-    const std::string script = writeTempPy();
-    if(script.empty()){
-        return out;
-    }
+    for (const auto& r : LR.astRules) {
+        if (r.lang != "python") continue;
 
-    const std::string tmpJson = fs::path(script).parent_path().string() + "/rules.json";
-    {
-        std::ofstream j(tmpJson);
-        j << "[\n";
-        bool first=true;
-        for(const auto& r: LR.astRules){
-            if(r.lang!="python") continue;
-            if(!first) j << ",\n";
-            first=false;
-            j << "  " << r.toJson();
-        }
-        j << "\n]\n";
-    }
-    std::string cmd = "cat " + CryptoScanner::shellQuote(tmpJson) + " | python3 "
-                    + CryptoScanner::shellQuote(script) + " " + CryptoScanner::shellQuote(path) + " 2>/dev/null";
-    std::string outText;
-    if(CryptoScanner::runCommandText(cmd, outText)){
-        std::istringstream iss(outText);
-        while(true){
-            std::string L; if(!std::getline(iss, L)) break;
-            if(L.rfind("DETECT\t",0)==0){
-                std::istringstream ls(L);
-                std::string tmp, msg, ev, sev; size_t line=0;
-                std::getline(ls, tmp, '\t'); // DETECT
-                std::getline(ls, tmp, '\t'); line = (size_t)std::stoul(tmp);
-                std::getline(ls, msg, '\t');
-                std::getline(ls, sev, '\t');
-                std::getline(ls, ev,  '\t');
-                out.push_back({ path, line, msg, ev, "ast", sev.empty()? "med": sev });
+        if (r.kind == "call_fullname") {
+            std::regex rx = make_py_fullname_rx(r.callee);
+            std::smatch m;
+            std::string::const_iterator searchStart(cleaned.cbegin());
+            while (std::regex_search(searchStart, cleaned.cend(), m, rx)) {
+                size_t pos = (size_t)(m.position(0) + (searchStart - cleaned.cbegin()));
+                size_t ln = lineno_at(cleaned, pos);
+                add(out, path, ln, r.message.empty()? r.id : r.message, r.callee, r.severity);
+                searchStart = m.suffix().first;
+            }
+        } else if (r.kind == "call_fullname+arg") {
+            std::regex rx = make_py_fullname_rx(r.callee);
+            std::smatch m;
+            std::string::const_iterator searchStart(cleaned.cbegin());
+            while (std::regex_search(searchStart, cleaned.cend(), m, rx)) {
+                size_t pos = (size_t)(m.position(0) + (searchStart - cleaned.cbegin()));
+                size_t ln = lineno_at(cleaned, pos);
+                std::string tail(cleaned.begin()+pos, cleaned.end());
+
+                std::smatch am;
+                std::regex argStrRx("\\G.*?\\(\\s*([\"'])((?:\\\\.|[^\"'\\\\])*)\\1", std::regex::ECMAScript|std::regex::icase);
+                if (std::regex_search(tail, am, argStrRx)) {
+                    std::string arg = am[2].str();
+                    try{
+                        std::regex argRx(r.arg_regex, std::regex::ECMAScript|std::regex::icase);
+                        if (std::regex_search(arg, argRx)) {
+                            add(out, path, ln, r.message.empty()? r.id : r.message, arg, r.severity);
+                        }
+                    }catch(...){}
+                }
+                searchStart = m.suffix().first;
+            }
+        } else if (r.kind == "call") {
+            for (const auto& fn : r.callees) {
+                std::regex rx = make_py_fullname_rx(fn);
+                std::smatch m;
+                std::string::const_iterator searchStart(cleaned.cbegin());
+                while (std::regex_search(searchStart, cleaned.cend(), m, rx)) {
+                    size_t pos = (size_t)(m.position(0) + (searchStart - cleaned.cbegin()));
+                    size_t ln = lineno_at(cleaned, pos);
+                    add(out, path, ln, r.message.empty()? r.id : r.message, fn, r.severity);
+                    searchStart = m.suffix().first;
+                }
             }
         }
     }
-    CryptoScanner::removeDirRecursive(fs::path(script).parent_path().string());
+
     return out;
 }
 

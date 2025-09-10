@@ -1,9 +1,9 @@
 #pragma once
 
+#include "CryptoScanner.h"
+
 #include <vector>
 #include <string>
-
-#include "CryptoScanner.h"
 
 namespace analyzers {
 

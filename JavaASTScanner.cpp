@@ -2,122 +2,145 @@
 #include "PatternLoader.h"
 
 #include <regex>
-#include <unordered_map>
-#include <sstream>
+#include <string>
+#include <vector>
 #include <cctype>
+#include <unordered_map>
 
-#include <QtCore/QRegularExpression>
-#include <QtCore/QString>
+namespace {
+
+std::string strip_java_comments(const std::string& s) {
+    std::string out;
+    out.reserve(s.size());
+    bool in_str = false;
+    char str_q = 0;
+    bool in_sl_comment = false;
+    bool in_ml_comment = false;
+    for (size_t i=0; i<s.size(); ++i) {
+        char c = s[i];
+        char n = (i+1<s.size()? s[i+1] : '\0');
+        if (in_sl_comment) {
+            if (c == '\n') { in_sl_comment = false; out.push_back('\n'); }
+            continue;
+        }
+        if (in_ml_comment) {
+            if (c=='*' && n=='/') { in_ml_comment=false; ++i; }
+            else if (c=='\n') out.push_back('\n');
+            continue;
+        }
+        if (!in_str) {
+            if (c=='"' || c=='\'') { in_str=true; str_q=c; out.push_back(c); continue; }
+            if (c=='/' && n=='/') { in_sl_comment=true; ++i; continue; }
+            if (c=='/' && n=='*') { in_ml_comment=true; ++i; continue; }
+            out.push_back(c);
+        } else {
+            // in string
+            out.push_back(c);
+            if (c=='\\') { if (i+1<s.size()) { out.push_back(s[i+1]); ++i; } }
+            else if (c==str_q) { in_str=false; str_q=0; }
+        }
+    }
+    return out;
+}
+
+std::regex make_java_callee_regex(const std::string& callee) {
+    std::string rx = "\\b";
+    for (size_t i=0;i<callee.size();++i) {
+        char ch = callee[i];
+        if (ch=='.') rx += "\\s*\\.\\s*";
+        else if (std::isalnum((unsigned char)ch) || ch=='_' || ch=='$') rx += ch;
+        else { rx += '\\'; rx += ch; }
+    }
+    rx += "\\s*\\(";
+    return std::regex(rx, std::regex::ECMAScript);
+}
+
+static std::pair<bool,std::string> extract_first_arg(const std::string& s, size_t pos){
+    size_t p = s.find('(', pos);
+    if (p==std::string::npos) return {false,{}};
+    ++p;
+    while (p<s.size() && std::isspace((unsigned char)s[p])) ++p;
+    if (p>=s.size()) return {false,{}};
+    if (s[p]=='"' || s[p]=='\''){
+        char q=s[p++];
+        std::string val;
+        while (p<s.size()){
+            char c=s[p++];
+            if (c=='\\' && p<s.size()){ val.push_back(s[p++]); continue; }
+            if (c==q){ return {true,val}; }
+            val.push_back(c);
+        }
+        return {false,{}};
+    }
+    size_t start=p;
+    while (p<s.size() && std::isdigit((unsigned char)s[p])) ++p;
+    if (p>start) return {true,s.substr(start,p-start)};
+    return {false,{}};
+}
+
+size_t lineno_at(const std::string& s, size_t pos) {
+    size_t ln=1;
+    for (size_t i=0;i<pos && i<s.size();++i) if (s[i]=='\n') ++ln;
+    return ln;
+}
+
+} // namespace
 
 namespace analyzers {
 
-static std::string trim(const std::string& s){
-    size_t a=0,b=s.size();
-    while(a<b && isspace((unsigned char)s[a])) ++a;
-    while(b>a && isspace((unsigned char)s[b-1])) --b;
-    return s.substr(a,b-a);
-}
-
-static void gatherStringConstants(const std::string& code, std::unordered_map<std::string,std::string>& out){
-    std::regex re(R"RX((?:final\s+)?String\s+([A-Za-z_]\w*)\s*=\s*"([^"]*)")RX");
-    auto begin = std::sregex_iterator(code.begin(), code.end(), re);
-    for(auto it=begin; it!=std::sregex_iterator(); ++it) {
-        out[it->str(1)] = it->str(2);
-    }
-}
-
-static std::string resolveArg(const std::string& token, const std::unordered_map<std::string,std::string>& C){
-    if(token.size()>=2 && token.front()=='"' && token.back()=='"') return token.substr(1, token.size()-2);
-    auto it=C.find(token); if(it!=C.end()) return it->second; return {};
-}
-
-static void add(std::vector<Detection>& v, const std::string& path, size_t line,
-                const std::string& alg, const std::string& ev,
-                const std::string& sev){
-    v.push_back({ path, line, alg, ev, "ast", sev.empty()? "med": sev });
-}
-
-static std::string calleeToRegex(const std::string& callee){
-    std::string r="\\b";
-    for(char c: callee){
-        if(c=='.') r += "\\s*\\.\\s*";
-        else r.push_back(c);
-    }
-    r += "\\b";
-    return r;
+static void add(std::vector<Detection>& out, const std::string& path, size_t line,
+                const std::string& alg, const std::string& ev, const std::string& sev){
+    out.push_back({ path, line, alg, ev, "ast", sev.empty()? "med" : sev });
 }
 
 std::vector<Detection> JavaASTScanner::scanSource(const std::string& displayPath, const std::string& code){
     std::vector<Detection> out;
-    std::unordered_map<std::string,std::string> C; 
-    gatherStringConstants(code, C);
-
     auto LR = pattern_loader::loadFromJson();
-    std::vector<pattern_loader::AstRule> rules = LR.astRules;
+    const std::string cleaned = strip_java_comments(code);
 
-    std::istringstream iss(code);
-    std::string line; 
-    size_t ln=0;
+    for (const auto& r : LR.astRules) {
+        if (r.lang != "java") continue;
 
-    struct Comp {
-        std::regex call;
-        QRegularExpression arg;
-        bool hasArg=false;
-        bool isCtor=false;
-        std::string msg;
-        std::string sev;
-    };
+        if (r.kind == "call_fullname" || r.kind == "call_fullname+arg") {
+            std::regex rx = make_java_callee_regex(r.callee);
 
-    std::vector<Comp> comps;
-    comps.reserve(rules.size());
-
-    for(const auto& r: rules){
-        if(r.lang!="java") continue;
-
-        Comp c;
-        c.isCtor = (r.kind=="ctor_call" || r.kind=="ctor");
-        c.msg    = r.message;
-        c.sev    = r.severity.empty()? "med" : r.severity;
-
-        if(!r.arg_regex.empty()){
-            c.hasArg = true;
-            c.arg = QRegularExpression(QString::fromStdString(r.arg_regex),
-                                       QRegularExpression::CaseInsensitiveOption
-                                     | QRegularExpression::UseUnicodePropertiesOption);
-        }
-
-        const std::string cal = calleeToRegex(r.callee);
-        if(c.isCtor){
-            c.call = std::regex(std::string("new\\s+") + cal + R"(\s*\(\s*(\"[^\"]+\"|[A-Za-z_]\w*)?)",
-                                std::regex::ECMAScript);
-        }else{
-            c.call = std::regex(cal + R"(\s*\(\s*(\"[^\"]+\"|[A-Za-z_]\w*)?)",
-                                std::regex::ECMAScript);
-        }
-
-        comps.push_back(std::move(c));
-    }
-
-    while(std::getline(iss, line)){
-        ++ln;
-        std::string L = trim(line);
-        for(const auto& c : comps){
             std::smatch m;
-            if(std::regex_search(L, m, c.call)){
-                std::string tok = (m.size()>=2 ? m.str(1) : std::string());
-                std::string val = resolveArg(tok, C);
+            std::string::const_iterator searchStart(cleaned.cbegin());
+            while (std::regex_search(searchStart, cleaned.cend(), m, rx)) {
+                size_t pos = (size_t)(m.position(0) + (searchStart - cleaned.cbegin()));
+                size_t ln = lineno_at(cleaned, pos);
 
-                bool ok = true;
-                if(c.hasArg){
-                    const auto res = c.arg.match(QString::fromStdString(val));
-                    ok = c.arg.isValid() && res.hasMatch();
+                if (r.kind == "call_fullname") {
+                    add(out, displayPath, ln, r.message.empty()? r.id : r.message, r.callee, r.severity);
+                } else {
+                    auto pr = extract_first_arg(cleaned, pos);
+                    if (pr.first) {
+                        try {
+                            std::regex argRx(r.arg_regex, std::regex::ECMAScript|std::regex::icase);
+                            if (std::regex_search(pr.second, argRx)) {
+                                add(out, displayPath, ln, r.message.empty()? r.id : r.message, pr.second, r.severity);
+                            }
+                        } catch (...) {}
+                    }
                 }
-                if(ok){
-                    add(out, displayPath, ln, c.msg, (!val.empty()? val : "call"), c.sev);
+
+                searchStart = m.suffix().first;
+            }
+        } else if (r.kind == "call") {
+            for (const auto& fn : r.callees) {
+                std::regex rx = make_java_callee_regex(fn);
+                std::smatch m;
+                std::string::const_iterator searchStart(cleaned.cbegin());
+                while (std::regex_search(searchStart, cleaned.cend(), m, rx)) {
+                    size_t pos = (size_t)(m.position(0) + (searchStart - cleaned.cbegin()));
+                    size_t ln = lineno_at(cleaned, pos);
+                    add(out, displayPath, ln, r.message.empty()? r.id : r.message, fn, r.severity);
+                    searchStart = m.suffix().first;
                 }
             }
         }
     }
+
     return out;
 }
 
