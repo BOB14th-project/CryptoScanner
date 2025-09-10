@@ -111,3 +111,4 @@ FileScanner::scanBytesWithOffsets(const std::vector<unsigned char>& data, const 
     }
     return res;
 }
+ 

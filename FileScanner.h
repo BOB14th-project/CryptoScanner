@@ -18,3 +18,4 @@ public:
     static std::unordered_map<std::string, std::vector<std::pair<std::string, std::size_t>>>
     scanBytesWithOffsets(const std::vector<unsigned char>& data, const std::vector<BytePattern>& patterns);
 };
+ 
