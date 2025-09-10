@@ -5,6 +5,8 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
+#include <unordered_map>
 
 struct Detection {
     std::string filePath;
@@ -22,44 +24,31 @@ public:
     std::vector<Detection> scanFileDetailed(const std::string& filePath);
     std::vector<Detection> scanPathRecursive(const std::string& rootPath);
 
-    std::vector<AlgorithmPattern> patterns;
-    std::vector<BytePattern>      oidBytePatterns;
-
-    static bool runCommandText(const std::string& cmd, std::string& outText);
-    static bool runCommandBinary(const std::string& cmd, std::vector<unsigned char>& outBin);
-    static std::string shellQuote(const std::string& s);
-
-    static bool toolExists(const std::string& program);
-    static bool readTextFile(const std::string& path, std::string& out);
-    static std::string makeTempDir();
-    static void removeDirRecursive(const std::string& path);
-
-private:
-    // file-type routers
-    std::vector<Detection> scanBinaryFileDetailed(const std::string& filePath);
     std::vector<Detection> scanClassFileDetailed(const std::string& filePath);
     std::vector<Detection> scanJarFileDetailed(const std::string& filePath);
-    std::vector<Detection> scanJavaSourceFileDetailed(const std::string& filePath);
-    std::vector<Detection> scanPythonSourceFileDetailed(const std::string& filePath);
-    std::vector<Detection> scanCppSourceFileDetailed(const std::string& filePath);
-
-    // Certificates / Keys (X.509 / CSR / PKCS#8)
     std::vector<Detection> scanCertOrKeyFileDetailed(const std::string& filePath);
-
-    // jar helpers
-    std::vector<Detection> scanJarViaMiniZ(const std::string& filePath);
-    std::vector<Detection> scanJarViaUnzip(const std::string& filePath);
-    std::vector<Detection> scanJarViaJarTool(const std::string& filePath);
 
     std::vector<Detection> scanBinaryFileHeaderLimited(const std::string& filePath, std::size_t maxBytes);
 
-    std::vector<Detection> analyzeJarWithJadx(const std::string& filePath);
-    std::vector<Detection> analyzeJarBytecode(const std::string& filePath);
-
     static std::uintmax_t getFileSizeSafe(const std::string& path);
-    static std::size_t getJadxMaxBytes();
-
-    static bool isLikelyPem(const std::string& path);
-    static bool isCertOrKeyExt(const std::string& ext);
     static std::string lowercaseExt(const std::string& p);
+    static bool isCertOrKeyExt(const std::string& ext);
+    static bool isLikelyPem(const std::string& path);
+    static bool readTextFile(const std::string& path, std::string& out);
+    static bool readAllBytes(const std::string& path, std::vector<unsigned char>& out);
+
+private:
+    std::vector<Detection> scanJarViaMiniZ(const std::string& filePath);
+
+    std::vector<AlgorithmPattern> patterns;
+    std::vector<BytePattern>      oidBytePatterns;
+
+    static std::string severityForTextPattern(const std::string& algName, const std::string& matched);
+    static std::string severityForByteType(const std::string& type);
+    static std::string evidenceTypeForTextPattern(const std::string& algName);
+    static std::string evidenceLabelForByteType(const std::string& type);
+
+    static bool isPemText(const std::string& text);
+    static std::vector<std::vector<unsigned char>> pemDecodeAll(const std::string& text);
+    static std::vector<unsigned char> b64decode(const std::string& s);
 };
