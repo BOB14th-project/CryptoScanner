@@ -43,3 +43,5 @@ QMAKE_EXTRA_TARGETS += rebuild
 rebuild.CONFIG  = phony
 rebuild.target  = rebuild
 rebuild.commands = $(MAKE) distclean; $$QMAKE_QMAKE $$PWD/CryptoScanner.pro; $(MAKE) -j$$system('nproc')
+
+LIBS += -lssl -lcrypto
