@@ -898,14 +898,34 @@
       "type": "curve_param"
     },
     {
-      "name": "AES-NI instructions",
-      "pattern": "\\b(?:AESENC|AESENCLAST|AESDEC|AESDECLAST|AESIMC|AESKEYGENASSIST)\\b",
-      "icase": true
+      "name": "AESENC instruction",
+      "hex": "660F38DC",
+      "type": "opcode"
     },
     {
-      "name": "AES-NI intrinsics",
-      "pattern": "\\b_mm_aes(?:enc|enclast|dec|declast|imc|keygenassist)_si128\\b",
-      "icase": false
+      "name": "AESENCLAST instruction",
+      "hex": "660F38DD",
+      "type": "opcode"
+    },
+    {
+      "name": "AESDEC instruction",
+      "hex": "660F38DE",
+      "type": "opcode"
+    },
+    {
+      "name": "AESDECLAST instruction",
+      "hex": "660F38DF",
+      "type": "opcode"
+    },
+    {
+      "name": "AESIMC instruction",
+      "hex": "660F38DB",
+      "type": "opcode"
+    },
+    {
+      "name": "AESKEYGENASSIST instruction",
+      "hex": "660F3ADF",
+      "type": "opcode"
     }
   ],
   "ast_rules": [
