@@ -896,6 +896,16 @@
       "name": "CurveParam (brainpoolP512r1 n)",
       "hex": "AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA70330870553E5C414CA92619418661197FAC10471DB1D381085DDADDB58796829CA90069",
       "type": "curve_param"
+    },
+    {
+      "name": "AES-NI instructions",
+      "pattern": "\\b(?:AESENC|AESENCLAST|AESDEC|AESDECLAST|AESIMC|AESKEYGENASSIST)\\b",
+      "icase": true
+    },
+    {
+      "name": "AES-NI intrinsics",
+      "pattern": "\\b_mm_aes(?:enc|enclast|dec|declast|imc|keygenassist)_si128\\b",
+      "icase": false
     }
   ],
   "ast_rules": [
