@@ -71,6 +71,21 @@
       "icase": true
     },
     {
+      "name": "OID dotted (id-RSAES-OAEP)",
+      "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\.7\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (id-mgf1)",
+      "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\.8\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (id-pSpecified)",
+      "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\.9\\b",
+      "icase": true
+    },
+    {
       "name": "OID dotted (sha256WithRSAEncryption)",
       "pattern": "\\b1\\.2\\.840\\.113549\\.1\\.1\\.11\\b",
       "icase": true
@@ -162,7 +177,7 @@
     },
     {
       "name": "API (OpenSSL)",
-      "pattern": "\\b(?:EVP_[A-Za-z0-9_]+|RSA_[A-Za-z0-9_]+|EC_KEY_[A-Za-z0-9_]+|ECDSA_[A-Za-z0-9_]+|ECDH_[A-Za-z0-9_]+|DH_[A-Za-z0-9_]+)\\b",
+      "pattern": "\\b(?:EVP_[A-Za-z0-9_]+|RSA_[A-Za-z0-9_]+|EC_KEY_[A-Za-z0-9_]+|ECDSA_[A-Za-z0-9_]+|ECDH_[A-Za-z0-9_]+|DH_[A-Za-z0-9_]+|DES_[A-Za-z0-9_]+|AES_[A-Za-z0-9_]+)\\b",
       "icase": false
     },
     {
@@ -409,6 +424,56 @@
       "name": "X448 basepoint u=5",
       "pattern": "\\bu\\s*=\\s*5\\b",
       "icase": true
+    },
+    {
+      "name": "BouncyCastle Provider",
+      "pattern": "\\borg[./]bouncycastle[./]jce[./]provider[./]BouncyCastleProvider\\b|\\borg\\.bouncycastle\\.jce\\.provider\\.BouncyCastleProvider\\b",
+      "icase": true
+    },
+    {
+      "name": "BouncyCastle RSA",
+      "pattern": "\\borg[./]bouncycastle[./]crypto[./](engines[./]RSAEngine|signers[./]RSADigestSigner|params[./]RSAKeyParameters)\\b|\\borg\\.bouncycastle\\.crypto\\.(engines\\.RSAEngine|signers\\.RSADigestSigner|params\\.(RSAKeyParameters))\\b",
+      "icase": true
+    },
+    {
+      "name": "BouncyCastle EC/ECDSA",
+      "pattern": "\\borg[./]bouncycastle[./]crypto[./](signers[./]ECDSASigner|params[./](ECPrivateKeyParameters|ECPublicKeyParameters))\\b|\\borg\\.bouncycastle\\.crypto\\.(signers\\.ECDSASigner|params\\.(ECPrivateKeyParameters|ECPublicKeyParameters))\\b",
+      "icase": true
+    },
+    {
+      "name": "BouncyCastle Curves",
+      "pattern": "\\borg[./]bouncycastle[./]asn1[./](x9|nist)[./](ECNamedCurveTable|X9ECParameters|NISTNamedCurves)\\b|\\borg\\.bouncycastle\\.asn1\\.(x9|nist)\\.(ECNamedCurveTable|X9ECParameters|NISTNamedCurves)\\b",
+      "icase": true
+    },
+    {
+      "name": "BouncyCastle AES/GCM",
+      "pattern": "\\borg[./]bouncycastle[./]crypto[./](engines[./](AESEngine|GCMBlockCipher|SICBlockCipher)|modes[./]GCMBlockCipher)\\b|\\borg\\.bouncycastle\\.crypto\\.(engines\\.(AESEngine|GCMBlockCipher|SICBlockCipher)|modes\\.GCMBlockCipher)\\b",
+      "icase": true
+    },
+    {
+      "name": "BouncyCastle TLS",
+      "pattern": "\\borg[./]bouncycastle[./]tls[./](TLSClient|TLSServer|DefaultTlsClient|DefaultTlsServer)\\b|\\borg\\.bouncycastle\\.tls\\.(TLSClient|TLSServer|DefaultTlsClient|DefaultTlsServer)\\b",
+      "icase": true
+    },
+    {
+      "name": "C/C++ AES-NI intrinsics (GCC/Clang/MSVC)",
+      "pattern": "\\b_mm_(?:aesenc|aesenclast|aesdec|aesdeclast|aesimc|aeskeygenassist)_si128\\b",
+      "icase": true
+    },
+    {
+      "name": "C/C++ CLMUL intrinsic (GCM GHASH hint)",
+      "pattern": "\\b_mm_clmulepi64_si128\\b",
+      "icase": true
+    },
+    {
+      "name": "OpenSSL AES-NI/CLMUL symbol hint",
+      "pattern": "\\b(?:aesni_\\w+|ghash_?clmul(?:ni)?_?intel)\\b",
+      "icase": true
+    },
+    {
+      "name": "Java Cipher transforms (AES modes incl. GCM)",
+      "pattern": "\\bAES\\/(?:GCM|CTR|CBC|CFB|OFB|ECB)\\/(?:NoPadding|PKCS5Padding)\\b",
+      "icase": true
     }
   ],
   "bytes": [
@@ -420,6 +485,21 @@
     {
       "name": "OID DER (rsassaPss)",
       "hex": "06092A864886F70D01010A",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (id-RSAES-OAEP)",
+      "hex": "06092A864886F70D010107",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (id-mgf1)",
+      "hex": "06092A864886F70D010108",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (id-pSpecified)",
+      "hex": "06092A864886F70D010109",
       "type": "oid"
     },
     {
@@ -440,6 +520,11 @@
     {
       "name": "OID DER (ecdsa-with-SHA1)",
       "hex": "06072A8648CE3D0401",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (ecdsa-with-SHA224)",
+      "hex": "06082A8648CE3D040301",
       "type": "oid"
     },
     {
@@ -763,11 +848,6 @@
       "type": "curve_param"
     },
     {
-      "name": "CurveParam (secp256k1 a)",
-      "hex": "0000000000000000000000000000000000000000000000000000000000000000",
-      "type": "curve_param"
-    },
-    {
       "name": "CurveParam (secp256k1 b)",
       "hex": "0000000000000000000000000000000000000000000000000000000000000007",
       "type": "curve_param"
@@ -898,6 +978,7 @@
       "type": "curve_param"
     },
     {
+<<<<<<< HEAD
       "name": "AESENC instruction",
       "hex": "660F38DC",
       "type": "opcode"
@@ -926,6 +1007,76 @@
       "name": "AESKEYGENASSIST instruction",
       "hex": "660F3ADF",
       "type": "opcode"
+=======
+      "name": "x86 AESIMC (AES-NI) opcode",
+      "hex": "660F38DB",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESENC (AES-NI) opcode",
+      "hex": "660F38DC",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESENCLAST (AES-NI) opcode",
+      "hex": "660F38DD",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESDEC (AES-NI) opcode",
+      "hex": "660F38DE",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESDECLAST (AES-NI) opcode",
+      "hex": "660F38DF",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESKEYGENASSIST (AES-NI) opcode - generic prefix",
+      "hex": "660F3ADF",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x01",
+      "hex": "660F3ADF01",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x02",
+      "hex": "660F3ADF02",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x04",
+      "hex": "660F3ADF04",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x08",
+      "hex": "660F3ADF08",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x10",
+      "hex": "660F3ADF10",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x1B",
+      "hex": "660F3ADF1B",
+      "type": "const"
+    },
+    {
+      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x36",
+      "hex": "660F3ADF36",
+      "type": "const"
+    },
+    {
+      "name": "x86 PCLMULQDQ (CLMUL) opcode - GCM 보조 추정",
+      "hex": "660F3A44",
+      "type": "const"
+>>>>>>> 3b3623a ([docs] BouncyCastle 추가, OID 추가, AES-NI opcode 추가)
     }
   ],
   "ast_rules": [
