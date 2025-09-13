@@ -32,6 +32,9 @@ make rebuild
 2. 바이트 시그니처(bytes) : OID DER 인코딩, 곡선 소수/파라미터, 상수(basepoint) 등 바이트열 매칭
 3. AST/바이트코드: `Java` / `Python` / `C/C++` / `JAR/CLASS`
 
+### 📈 정적(패턴) 탐지 Flow Chart
+<img width="7585" height="4697" alt="static_flowchart" src="https://github.com/user-attachments/assets/bde8886e-5d08-4e06-b74a-765b0b6995de" />
+
 
 ### 📁 파일 별 역할
 | 경로 | 역할 |
