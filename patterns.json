@@ -978,7 +978,6 @@
       "type": "curve_param"
     },
     {
-<<<<<<< HEAD
       "name": "AESENC instruction",
       "hex": "660F38DC",
       "type": "opcode"
@@ -1007,7 +1006,8 @@
       "name": "AESKEYGENASSIST instruction",
       "hex": "660F3ADF",
       "type": "opcode"
-=======
+    },
+    {
       "name": "x86 AESIMC (AES-NI) opcode",
       "hex": "660F38DB",
       "type": "const"
@@ -1076,7 +1076,6 @@
       "name": "x86 PCLMULQDQ (CLMUL) opcode - GCM 보조 추정",
       "hex": "660F3A44",
       "type": "const"
->>>>>>> 3b3623a ([docs] BouncyCastle 추가, OID 추가, AES-NI opcode 추가)
     }
   ],
   "ast_rules": [
