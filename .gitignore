@@ -3,11 +3,15 @@
 
 # Build outputs
 *.o
+test_exe/*.o
 *.a
 *.so
+*.moc
 CryptoScanner
 Makefile
 
 # etc
 DerParser.*
 moc_predefs.h
+.vscode/
+result/*

@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstdint>
 #include <unordered_map>
+#include <functional>
 
 struct Detection {
     std::string filePath;
@@ -15,6 +16,11 @@ struct Detection {
     std::string matchString;
     std::string evidenceType;
     std::string severity;
+};
+
+struct ScanOptions {
+    bool recurse = true;
+    bool deepJar = true;
 };
 
 class CryptoScanner {
@@ -28,7 +34,7 @@ public:
     std::vector<Detection> scanJarFileDetailed(const std::string& filePath);
     std::vector<Detection> scanCertOrKeyFileDetailed(const std::string& filePath);
 
-    std::vector<Detection> scanBinaryFileHeaderLimited(const std::string& filePath, std::size_t maxBytes);
+    std::vector<Detection> scanBinaryWholeFile(const std::string& filePath);
 
     static std::uintmax_t getFileSizeSafe(const std::string& path);
     static std::string lowercaseExt(const std::string& p);
@@ -36,6 +42,14 @@ public:
     static bool isLikelyPem(const std::string& path);
     static bool readTextFile(const std::string& path, std::string& out);
     static bool readAllBytes(const std::string& path, std::vector<unsigned char>& out);
+
+    void scanPathLikeAntivirus(
+        const std::string& rootPath,
+        const ScanOptions& opt,
+        const std::function<void(const Detection&)>& onDetect,
+        const std::function<void(const std::string&, std::uint64_t, std::uint64_t, std::uint64_t, std::uint64_t)>& onProgress,
+        const std::function<bool()>& isCancelled
+    );
 
 private:
     std::vector<Detection> scanJarViaMiniZ(const std::string& filePath);

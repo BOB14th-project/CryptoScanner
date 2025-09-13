@@ -16,8 +16,10 @@ struct BytePattern {
     std::string type;
 };
 
+namespace pattern_loader { struct AstRule; }
+
 namespace crypto_patterns {
-    std::vector<AlgorithmPattern> getDefaultPatterns();        // from JSON
-    std::vector<BytePattern>      getDefaultOIDBytePatterns(); // from JSON
+    std::vector<AlgorithmPattern> getDefaultPatterns();
+    std::vector<BytePattern>      getDefaultOIDBytePatterns();
+    std::vector<pattern_loader::AstRule> getDefaultASTRules();
 }
- 

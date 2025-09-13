@@ -1,147 +1,106 @@
 #include "JavaASTScanner.h"
-#include "PatternLoader.h"
 
-#include <regex>
 #include <string>
 #include <vector>
 #include <cctype>
-#include <unordered_map>
+#include <cstring>
+#include <tree_sitter/api.h>
+
+extern "C" const TSLanguage *tree_sitter_java();
 
 namespace {
 
-std::string strip_java_comments(const std::string& s) {
-    std::string out;
-    out.reserve(s.size());
-    bool in_str = false;
-    char str_q = 0;
-    bool in_sl_comment = false;
-    bool in_ml_comment = false;
-    for (size_t i=0; i<s.size(); ++i) {
-        char c = s[i];
-        char n = (i+1<s.size()? s[i+1] : '\0');
-        if (in_sl_comment) {
-            if (c == '\n') { in_sl_comment = false; out.push_back('\n'); }
-            continue;
-        }
-        if (in_ml_comment) {
-            if (c=='*' && n=='/') { in_ml_comment=false; ++i; }
-            else if (c=='\n') out.push_back('\n');
-            continue;
-        }
-        if (!in_str) {
-            if (c=='"' || c=='\'') { in_str=true; str_q=c; out.push_back(c); continue; }
-            if (c=='/' && n=='/') { in_sl_comment=true; ++i; continue; }
-            if (c=='/' && n=='*') { in_ml_comment=true; ++i; continue; }
-            out.push_back(c);
-        } else {
-            // in string
-            out.push_back(c);
-            if (c=='\\') { if (i+1<s.size()) { out.push_back(s[i+1]); ++i; } }
-            else if (c==str_q) { in_str=false; str_q=0; }
-        }
-    }
-    return out;
+std::string trim(const std::string& s){
+    size_t i=0,j=s.size();
+    while(i<j && std::isspace((unsigned char)s[i]))++i;
+    while(j>i && std::isspace((unsigned char)s[j-1]))--j;
+    return s.substr(i,j-i);
 }
 
-std::regex make_java_callee_regex(const std::string& callee) {
-    std::string rx = "\\b";
-    for (size_t i=0;i<callee.size();++i) {
-        char ch = callee[i];
-        if (ch=='.') rx += "\\s*\\.\\s*";
-        else if (std::isalnum((unsigned char)ch) || ch=='_' || ch=='$') rx += ch;
-        else { rx += '\\'; rx += ch; }
-    }
-    rx += "\\s*\\(";
-    return std::regex(rx, std::regex::ECMAScript);
+std::string node_text(TSNode n, const std::string& src){
+    uint32_t a=ts_node_start_byte(n), b=ts_node_end_byte(n);
+    if(b>src.size()) b=(uint32_t)src.size();
+    if(a>b) a=b;
+    return std::string(src.data()+a, src.data()+b);
 }
 
-static std::pair<bool,std::string> extract_first_arg(const std::string& s, size_t pos){
-    size_t p = s.find('(', pos);
-    if (p==std::string::npos) return {false,{}};
-    ++p;
-    while (p<s.size() && std::isspace((unsigned char)s[p])) ++p;
-    if (p>=s.size()) return {false,{}};
-    if (s[p]=='"' || s[p]=='\''){
-        char q=s[p++];
-        std::string val;
-        while (p<s.size()){
-            char c=s[p++];
-            if (c=='\\' && p<s.size()){ val.push_back(s[p++]); continue; }
-            if (c==q){ return {true,val}; }
-            val.push_back(c);
+std::string callee_from_segment(const std::string& seg){
+    auto p = seg.find('(');
+    if(p==std::string::npos) return trim(seg);
+    return trim(seg.substr(0,p));
+}
+
+std::pair<bool,std::string> first_arg_literal_from_segment(const std::string& seg){
+    auto p = seg.find('(');
+    if(p==std::string::npos) return {false,{}};
+    size_t i=p+1;
+    while(i<seg.size() && std::isspace((unsigned char)seg[i])) ++i;
+    if(i>=seg.size()) return {false,{}};
+    if(seg[i]=='"' || seg[i]=='\''){
+        char q=seg[i++];
+        std::string v;
+        while(i<seg.size()){
+            char c=seg[i++];
+            if(c=='\\' && i<seg.size()){ v.push_back(seg[i++]); continue; }
+            if(c==q) return {true,v};
+            v.push_back(c);
         }
         return {false,{}};
     }
-    size_t start=p;
-    while (p<s.size() && std::isdigit((unsigned char)s[p])) ++p;
-    if (p>start) return {true,s.substr(start,p-start)};
+    size_t j=i;
+    while(j<seg.size() && (std::isalnum((unsigned char)seg[j]) || seg[j]=='_')) ++j;
+    if(j>i) return {true, seg.substr(i, j-i)};
     return {false,{}};
 }
 
-size_t lineno_at(const std::string& s, size_t pos) {
-    size_t ln=1;
-    for (size_t i=0;i<pos && i<s.size();++i) if (s[i]=='\n') ++ln;
-    return ln;
 }
-
-} // namespace
 
 namespace analyzers {
 
-static void add(std::vector<Detection>& out, const std::string& path, size_t line,
-                const std::string& alg, const std::string& ev, const std::string& sev){
-    out.push_back({ path, line, alg, ev, "ast", sev.empty()? "med" : sev });
-}
+std::vector<AstSymbol> JavaASTScanner::collectSymbols(const std::string& displayPath, const std::string& code){
+    std::vector<AstSymbol> out;
+    if(code.empty()) return out;
 
-std::vector<Detection> JavaASTScanner::scanSource(const std::string& displayPath, const std::string& code){
-    std::vector<Detection> out;
-    auto LR = pattern_loader::loadFromJson();
-    const std::string cleaned = strip_java_comments(code);
+    TSParser* parser = ts_parser_new();
+    ts_parser_set_language(parser, tree_sitter_java());
+    TSTree* tree = ts_parser_parse_string(parser, nullptr, code.c_str(), (uint32_t)code.size());
+    if(!tree){ ts_parser_delete(parser); return out; }
 
-    for (const auto& r : LR.astRules) {
-        if (r.lang != "java") continue;
+    TSNode root = ts_tree_root_node(tree);
+    std::vector<TSNode> stack; stack.push_back(root);
 
-        if (r.kind == "call_fullname" || r.kind == "call_fullname+arg") {
-            std::regex rx = make_java_callee_regex(r.callee);
+    while(!stack.empty()){
+        TSNode n = stack.back(); stack.pop_back();
+        const char* t = ts_node_type(n);
 
-            std::smatch m;
-            std::string::const_iterator searchStart(cleaned.cbegin());
-            while (std::regex_search(searchStart, cleaned.cend(), m, rx)) {
-                size_t pos = (size_t)(m.position(0) + (searchStart - cleaned.cbegin()));
-                size_t ln = lineno_at(cleaned, pos);
+        if(std::strcmp(t,"method_invocation")==0){
+            std::string seg = node_text(n, code);
+            std::string callee = callee_from_segment(seg);
+            auto ar = first_arg_literal_from_segment(seg);
+            TSPoint p = ts_node_start_point(n);
+            size_t line = (size_t)p.row + 1;
+            AstSymbol s;
+            s.filePath = displayPath;
+            s.line = line;
+            s.lang = "java";
+            s.callee_full = callee;
+            s.callee_base = callee;
+            s.first_arg = ar.first ? ar.second : std::string();
+            out.push_back(std::move(s));
+        }
 
-                if (r.kind == "call_fullname") {
-                    add(out, displayPath, ln, r.message.empty()? r.id : r.message, r.callee, r.severity);
-                } else {
-                    auto pr = extract_first_arg(cleaned, pos);
-                    if (pr.first) {
-                        try {
-                            std::regex argRx(r.arg_regex, std::regex::ECMAScript|std::regex::icase);
-                            if (std::regex_search(pr.second, argRx)) {
-                                add(out, displayPath, ln, r.message.empty()? r.id : r.message, pr.second, r.severity);
-                            }
-                        } catch (...) {}
-                    }
-                }
-
-                searchStart = m.suffix().first;
-            }
-        } else if (r.kind == "call") {
-            for (const auto& fn : r.callees) {
-                std::regex rx = make_java_callee_regex(fn);
-                std::smatch m;
-                std::string::const_iterator searchStart(cleaned.cbegin());
-                while (std::regex_search(searchStart, cleaned.cend(), m, rx)) {
-                    size_t pos = (size_t)(m.position(0) + (searchStart - cleaned.cbegin()));
-                    size_t ln = lineno_at(cleaned, pos);
-                    add(out, displayPath, ln, r.message.empty()? r.id : r.message, fn, r.severity);
-                    searchStart = m.suffix().first;
-                }
-            }
+        uint32_t c = ts_node_child_count(n);
+        for(uint32_t i=0;i<c;++i){
+            TSNode ch = ts_node_child(n,i);
+            if(ts_node_is_null(ch)) continue;
+            if(!ts_node_is_named(ch)) continue;
+            stack.push_back(ch);
         }
     }
 
+    ts_tree_delete(tree);
+    ts_parser_delete(parser);
     return out;
 }
 
-} // namespace analyzers
+}
