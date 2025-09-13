@@ -47,17 +47,17 @@
     },
     {
       "name": "RC4",
-      "pattern": "\\b(?:RC4|ARC4|Rivest\\s+Cipher\\s*4)\\b",
+      "pattern": "\\bRC4\\b|\\bRC4_set_key\\b|\\bARC4\\b|\\bARCFOUR\\b",
       "icase": true
     },
     {
       "name": "SHA",
-      "pattern": "\\bSHA(?:[-_]?1|[-_]?224|[-_]?256|[-_]?384|[-_]?512)\\b|\\bSHA-?1\\b|\\bSecure\\s+Hash\\s+Algorithm\\s+2\\b",
+      "pattern": "\\bSHA(?:[-_]?1|[-_]?224|[-_]?256|[-_]?384|[-_]?512)\\b|\\bSHA1_Init\\b|\\bSHA-?1\\b|\\bSecure\\s+Hash\\s+Algorithm\\s+2\\b",
       "icase": true
     },
     {
       "name": "MD5",
-      "pattern": "\\bMD5\\b|\\bMessage\\s+Digest\\s+5\\b|\\bmd5sum\\b",
+      "pattern": "\\bMD5\\b|\\bMD5_Init\\b|\\bMessage\\s+Digest\\s+5\\b|\\bmd5sum\\b",
       "icase": true
     },
     {
@@ -177,7 +177,7 @@
     },
     {
       "name": "API (OpenSSL)",
-      "pattern": "\\b(?:EVP_[A-Za-z0-9_]+|RSA_[A-Za-z0-9_]+|EC_KEY_[A-Za-z0-9_]+|ECDSA_[A-Za-z0-9_]+|ECDH_[A-Za-z0-9_]+|DH_[A-Za-z0-9_]+|DES_[A-Za-z0-9_]+|AES_[A-Za-z0-9_]+)\\b",
+      "pattern": "\\b(?:EVP_[A-Za-z0-9_]+|RSA_[A-Za-z0-9_]+|EC_KEY_[A-Za-z0-9_]+|EC_GROUP_[A-Za-z0-9_]+|EC_[A-Za-z0-9_]+|DSA_[A-Za-z0-9_]+|DH_[A-Za-z0-9_]+|DES_[A-Za-z0-9_]+|AES_[A-Za-z0-9_]+|RC4_[A-Za-z0-9_]+|MD5_[A-Za-z0-9_]+|SHA1_[A-Za-z0-9_]+)\\b",
       "icase": false
     },
     {
@@ -976,297 +976,6 @@
       "name": "CurveParam (brainpoolP512r1 n)",
       "hex": "AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA70330870553E5C414CA92619418661197FAC10471DB1D381085DDADDB58796829CA90069",
       "type": "curve_param"
-    },
-    {
-      "name": "AESENC instruction",
-      "hex": "660F38DC",
-      "type": "opcode"
-    },
-    {
-      "name": "AESENCLAST instruction",
-      "hex": "660F38DD",
-      "type": "opcode"
-    },
-    {
-      "name": "AESDEC instruction",
-      "hex": "660F38DE",
-      "type": "opcode"
-    },
-    {
-      "name": "AESDECLAST instruction",
-      "hex": "660F38DF",
-      "type": "opcode"
-    },
-    {
-      "name": "AESIMC instruction",
-      "hex": "660F38DB",
-      "type": "opcode"
-    },
-    {
-      "name": "AESKEYGENASSIST instruction",
-      "hex": "660F3ADF",
-      "type": "opcode"
-    },
-    {
-      "name": "x86 AESIMC (AES-NI) opcode",
-      "hex": "660F38DB",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESENC (AES-NI) opcode",
-      "hex": "660F38DC",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESENCLAST (AES-NI) opcode",
-      "hex": "660F38DD",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESDEC (AES-NI) opcode",
-      "hex": "660F38DE",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESDECLAST (AES-NI) opcode",
-      "hex": "660F38DF",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESKEYGENASSIST (AES-NI) opcode - generic prefix",
-      "hex": "660F3ADF",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x01",
-      "hex": "660F3ADF01",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x02",
-      "hex": "660F3ADF02",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x04",
-      "hex": "660F3ADF04",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x08",
-      "hex": "660F3ADF08",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x10",
-      "hex": "660F3ADF10",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x1B",
-      "hex": "660F3ADF1B",
-      "type": "const"
-    },
-    {
-      "name": "x86 AESKEYGENASSIST (AES-NI) opcode imm8=0x36",
-      "hex": "660F3ADF36",
-      "type": "const"
-    },
-    {
-      "name": "x86 PCLMULQDQ (CLMUL) opcode - GCM 보조 추정",
-      "hex": "660F3A44",
-      "type": "const"
-    }
-  ],
-  "ast_rules": [
-    {
-      "id": "py_md5_call",
-      "lang": "python",
-      "kind": "call_fullname",
-      "callee": "hashlib.md5",
-      "message": "Python: hashlib.md5() usage",
-      "severity": "med",
-      "callees": []
-    },
-    {
-      "id": "py_sha1_call",
-      "lang": "python",
-      "kind": "call_fullname",
-      "callee": "hashlib.sha1",
-      "message": "Python: hashlib.sha1() usage",
-      "severity": "med",
-      "callees": []
-    },
-    {
-      "id": "py_hashlib_new_weak",
-      "lang": "python",
-      "kind": "call_fullname+arg",
-      "callee": "hashlib.new",
-      "arg_regex": "^(md5|sha1)$",
-      "message": "Python: hashlib.new('md5'|'sha1') usage",
-      "severity": "med",
-      "callees": []
-    },
-    {
-      "id": "py_des_arc4",
-      "lang": "python",
-      "kind": "call",
-      "callees": [
-        "Crypto.Cipher.DES.new",
-        "Crypto.Cipher.ARC4.new"
-      ],
-      "message": "Python: DES/ARC4 cipher usage",
-      "severity": "high",
-      "callee": ""
-    },
-    {
-      "id": "java_md_getInstance",
-      "lang": "java",
-      "kind": "call_fullname+arg",
-      "callee": "MessageDigest.getInstance",
-      "arg_regex": "^(MD5|SHA-?1)$",
-      "message": "Java: MessageDigest.getInstance(MD5|SHA-1)",
-      "severity": "med",
-      "callees": []
-    },
-    {
-      "id": "java_cipher_weak",
-      "lang": "java",
-      "kind": "call_fullname+arg",
-      "callee": "Cipher.getInstance",
-      "arg_regex": "(DES/ECB|RC4|AES/ECB)",
-      "message": "Java: Cipher.getInstance(DES/ECB|RC4|AES/ECB)",
-      "severity": "high",
-      "callees": []
-    },
-    {
-      "id": "java_sig_weak",
-      "lang": "java",
-      "kind": "call_fullname+arg",
-      "callee": "Signature.getInstance",
-      "arg_regex": "^(MD5withRSA|SHA1withRSA)$",
-      "message": "Java: Signature.getInstance(MD5withRSA|SHA1withRSA)",
-      "severity": "med",
-      "callees": []
-    },
-    {
-      "id": "java_kpg_small",
-      "lang": "java",
-      "kind": "call_fullname+arg",
-      "callee": "KeyPairGenerator.initialize",
-      "arg_regex": "^(512|768|1024)$",
-      "message": "Java: KeyPairGenerator.initialize(weak key size)",
-      "severity": "med",
-      "callees": []
-    },
-    {
-      "id": "java_kpg_small_fqn",
-      "lang": "java",
-      "kind": "call_fullname+arg",
-      "callee": "java.security.KeyPairGenerator.initialize",
-      "arg_regex": "^(512|768|1024)$",
-      "message": "Java: KeyPairGenerator.initialize(weak key size)",
-      "severity": "med",
-      "callees": []
-    },
-    {
-      "id": "cpp_openssl_md",
-      "lang": "cpp",
-      "kind": "call",
-      "callees": [
-        "EVP_md5",
-        "EVP_sha1",
-        "MD5_Init",
-        "SHA1_Init"
-      ],
-      "message": "C/C++: weak hash usage (MD5/SHA1)",
-      "severity": "med",
-      "callee": ""
-    },
-    {
-      "id": "cpp_des_rc4",
-      "lang": "cpp",
-      "kind": "call",
-      "callees": [
-        "DES_set_key",
-        "EVP_des_ecb",
-        "EVP_des_cbc",
-        "EVP_rc4"
-      ],
-      "message": "C/C++: DES/RC4 usage",
-      "severity": "high",
-      "callee": ""
-    },
-    {
-      "id": "java_ecgen_weak_curve",
-      "lang": "java",
-      "kind": "ctor",
-      "callee": "java.security.spec.ECGenParameterSpec",
-      "arg_regex": "(?i)secp112r1|secp112r2|secp128r1|secp128r2|secp160k1|secp160r1|secp160r2|secp192k1|sect[0-9]+k[0-9]+",
-      "message": "Java: ECGenParameterSpec(weak curve)",
-      "severity": "med"
-    },
-    {
-      "id": "py_rsa_generate_small_bits",
-      "lang": "python",
-      "kind": "call_fullname+arg",
-      "callee": "Crypto.PublicKey.RSA.generate",
-      "arg_regex": "^(512|768|1024)$",
-      "message": "Python: RSA.generate(bits <= 1024)",
-      "severity": "med"
-    },
-    {
-      "id": "py_ecdsa_sha1",
-      "lang": "python",
-      "kind": "call_fullname+arg",
-      "callee": "cryptography.hazmat.primitives.asymmetric.ec.ECDSA",
-      "arg_regex": "(?i)SHA1",
-      "message": "Python: ECDSA(hashes.SHA1())",
-      "severity": "med"
-    },
-    {
-      "id": "cpp_rsa_e_small_e",
-      "lang": "cpp",
-      "kind": "call",
-      "callees": [
-        "BN_set_word"
-      ],
-      "arg_regex": "BN_set_word\\s*\\([^,]+,\\s*(3|17)\\s*\\)",
-      "message": "C/C++: RSA public exponent 3/17",
-      "severity": "high"
-    },
-    {
-      "id": "cpp_dh_small_bits",
-      "lang": "cpp",
-      "kind": "call",
-      "callees": [
-        "DH_generate_parameters_ex"
-      ],
-      "arg_regex": "DH_generate_parameters_ex\\s*\\([^,]+,\\s*(512|768|1024)\\s*,",
-      "message": "C/C++: DH small modulus bits",
-      "severity": "med"
-    },
-    {
-      "id": "cpp_pss_mgf1_sha1",
-      "lang": "cpp",
-      "kind": "call",
-      "callees": [
-        "EVP_PKEY_CTX_set_rsa_mgf1_md"
-      ],
-      "arg_regex": "\\bEVP_sha1\\b",
-      "message": "C/C++: RSA-PSS MGF1 with SHA-1",
-      "severity": "med"
-    },
-    {
-      "id": "cpp_sig_sha1",
-      "lang": "cpp",
-      "kind": "call",
-      "callees": [
-        "EVP_PKEY_CTX_set_signature_md"
-      ],
-      "arg_regex": "\\bEVP_sha1\\b",
-      "message": "C/C++: Signature with SHA-1",
-      "severity": "med"
     }
   ]
 }
