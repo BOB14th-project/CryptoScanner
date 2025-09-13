@@ -896,6 +896,36 @@
       "name": "CurveParam (brainpoolP512r1 n)",
       "hex": "AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA70330870553E5C414CA92619418661197FAC10471DB1D381085DDADDB58796829CA90069",
       "type": "curve_param"
+    },
+    {
+      "name": "AESENC instruction",
+      "hex": "660F38DC",
+      "type": "opcode"
+    },
+    {
+      "name": "AESENCLAST instruction",
+      "hex": "660F38DD",
+      "type": "opcode"
+    },
+    {
+      "name": "AESDEC instruction",
+      "hex": "660F38DE",
+      "type": "opcode"
+    },
+    {
+      "name": "AESDECLAST instruction",
+      "hex": "660F38DF",
+      "type": "opcode"
+    },
+    {
+      "name": "AESIMC instruction",
+      "hex": "660F38DB",
+      "type": "opcode"
+    },
+    {
+      "name": "AESKEYGENASSIST instruction",
+      "hex": "660F3ADF",
+      "type": "opcode"
     }
   ],
   "ast_rules": [

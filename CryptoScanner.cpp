@@ -17,6 +17,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <unordered_set>
+#include <openssl/x509.h>
+#include <openssl/pem.h>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/core_names.h>
 
 #ifdef USE_MINIZ
 #include "third_party/miniz/miniz.h"
@@ -211,64 +216,89 @@ bool CryptoScanner::isLikelyPem(const std::string& path){
     return isPemText(t);
 }
 
-std::vector<Detection> CryptoScanner::scanCertOrKeyFileDetailed(const std::string& filePath){
+
+std::vector<Detection> CryptoScanner::scanCertOrKeyFileDetailed(const std::string& filePath) {
     std::vector<Detection> out;
+    
+    auto push = [&](const std::string& alg, const std::string& ev, const std::string& sev){
+        out.push_back({ filePath, 0, alg, ev, "x509", sev });
+    };
 
-    std::string text;
-    std::vector<unsigned char> whole;
-    bool isPem = false;
+    std::ifstream file(filePath, std::ios::binary);
+    if (!file) return out;
+    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(file), {});
 
-    if(readTextFile(filePath, text) && isPemText(text)) {
-        isPem = true;
-    } else {
-        readAllBytes(filePath, whole);
+    BIO* bio = BIO_new_mem_buf(buffer.data(), (int)buffer.size());
+    if (!bio) return out;
+
+    X509* cert = PEM_read_bio_X509(bio, NULL, NULL, NULL);
+    if (!cert) {
+        BIO_reset(bio);
+        cert = d2i_X509_bio(bio, NULL);
     }
 
-    std::vector<std::vector<unsigned char>> ders;
-    if(isPem) {
-        ders = pemDecodeAll(text);
-        if(ders.empty()){
-            if(whole.empty()) readAllBytes(filePath, whole);
-            if(!whole.empty()) ders.push_back(whole);
+    if (cert) {
+        char name_buf[256];
+        char oid_buf[256];
+
+        const X509_ALGOR* sig_alg = X509_get0_tbs_sigalg(cert);
+        if (sig_alg) {
+            const ASN1_OBJECT* sig_oid_obj = sig_alg->algorithm;
+            if (sig_oid_obj) {
+                OBJ_obj2txt(name_buf, sizeof(name_buf), sig_oid_obj, 0);
+                OBJ_obj2txt(oid_buf, sizeof(oid_buf), sig_oid_obj, 1);
+                
+                std::string alg_name_str(name_buf);
+                std::string severity = "med";
+                if (alg_name_str.find("sha1") != std::string::npos || alg_name_str.find("md5") != std::string::npos) {
+                    severity = "high";
+                }
+                push(alg_name_str, std::string(oid_buf), severity);
+            }
         }
-    } else {
-        if(!whole.empty()) ders.push_back(whole);
+
+        EVP_PKEY* pkey = X509_get_pubkey(cert);
+        if (pkey) {
+            int pkey_nid = EVP_PKEY_get_id(pkey);
+            if (pkey_nid != NID_undef) {
+                const char* alg_name = OBJ_nid2sn(pkey_nid);
+                const ASN1_OBJECT* pkey_obj = OBJ_nid2obj(pkey_nid);
+                if (alg_name && pkey_obj) {
+                    OBJ_obj2txt(oid_buf, sizeof(oid_buf), pkey_obj, 1);
+                    push(std::string(alg_name), std::string(oid_buf), "high");
+                }
+            }
+        }
+
+        X509_free(cert);
     }
+    
+    BIO_free(bio);
 
-    std::unordered_map<std::string,std::string> byteType;
-    for(const auto& bp: oidBytePatterns) byteType[bp.name] = bp.type;
-
-    auto collect = [&](const std::string& disp, const auto& data){
-        auto strings     = FileScanner::extractAsciiStrings(data);
+    if (out.empty()) {//openssl로 처리 안 됐을 때 기존 방법 사용
+        auto strings     = FileScanner::extractAsciiStrings(buffer);
         auto textMatches = FileScanner::scanStringsWithOffsets(strings, patterns);
-        auto oidMatches  = FileScanner::scanBytesWithOffsets(data, oidBytePatterns);
+        auto oidMatches  = FileScanner::scanBytesWithOffsets(buffer, oidBytePatterns);
 
         for(const auto& alg: textMatches){
             for(const auto& e: alg.second){
-                out.push_back({ disp, e.second, alg.first, e.first,
-                    evidenceTypeForTextPattern(alg.first),
-                    severityForTextPattern(alg.first, e.first) });
+                out.push_back({ filePath, e.second, alg.first, e.first,
+                             evidenceTypeForTextPattern(alg.first),
+                             severityForTextPattern(alg.first, e.first) });
             }
         }
+        
+        std::unordered_map<std::string,std::string> byteType;
+        for(const auto& bp: oidBytePatterns) byteType[bp.name] = bp.type;
         for(const auto& alg: oidMatches){
             const std::string et = byteType.count(alg.first)? byteType[alg.first] : std::string();
-            const std::string evType = evidenceLabelForByteType(et);
-            const std::string sev    = severityForByteType(et);
-            for(const auto& e: alg.second){
-                out.push_back({ disp, e.second, alg.first, e.first, evType, sev });
+            if (!alg.second.empty()) {
+                out.push_back({ filePath, alg.second.front().second, alg.first, alg.second.front().first,
+                             evidenceLabelForByteType(et), severityForByteType(et) });
             }
         }
-    };
-
-    if(ders.empty()){
-        if(!whole.empty()) collect(filePath, whole);
-    } else {
-        for(size_t i=0;i<ders.size();++i){
-            std::string name = filePath;
-            if(ders.size()>1) name += std::string("::block#") + std::to_string(i+1);
-            collect(name, ders[i]);
-        }
     }
+
     return out;
 }
 
