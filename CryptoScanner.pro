@@ -11,6 +11,7 @@ DEFINES += MINIZ_NO_ZLIB_APIS MINIZ_NO_ARCHIVE_WRITING_APIS MZ_NO_MESSAGE
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/third_party/miniz
 INCLUDEPATH += $$PWD/third_party/tree-sitter/lib/include
+INCLUDEPATH += $$PWD/third_party/tree-sitter/lib/src
 
 SOURCES += \
     gui_main_linux.cpp \
