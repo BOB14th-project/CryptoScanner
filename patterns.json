@@ -758,6 +758,16 @@
       "type": "prime"
     },
     {
+      "name": "Prime (secp224r1)",
+      "hex": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000001",
+      "type": "prime"
+    },
+    {
+      "name": "Prime (secp224k1)",
+      "hex": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFE56D",
+      "type": "prime"
+    },
+    {
       "name": "Prime (secp256k1)",
       "hex": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
       "type": "prime"
@@ -789,7 +799,7 @@
     },
     {
       "name": "CurveParam (secp256r1 Gy)",
-      "hex": "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5",
+      "hex": "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162CB08D4B10D1B3EBAAEAE35B7AC90FB0",
       "type": "curve_param"
     },
     {
@@ -834,7 +844,7 @@
     },
     {
       "name": "CurveParam (secp521r1 Gx)",
-      "hex": "00C6858E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66",
+      "hex": "00C6868E06B70404E9CD9E3ECB662395B4429C648139053FB521F828AF606B4D3DBAA14B5E77EFE75928FE1DC127A2FFA8DE3348B3C1856A429BF97E7E31C2E5BD66",
       "type": "curve_param"
     },
     {
@@ -848,8 +858,63 @@
       "type": "curve_param"
     },
     {
+      "name": "CurveParam (secp224r1 a)",
+      "hex": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFE",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp224r1 b)",
+      "hex": "B4050A850C04B3ABF54132565044B0B7D7BFD8BA270B39432355FFB4",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp224r1 Gx)",
+      "hex": "B70E0CBD6BB4BF7F321390B94A03C1D356C21122343280D6115C1D21",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp224r1 Gy)",
+      "hex": "BD376388B5F723FB4C22DFE6CD4375A05A07476444D5819985007E34",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp224r1 n)",
+      "hex": "FFFFFFFFFFFFFFFFFFFFFFFFFFFF16A2E0B8F03E13DD29455C5C2A3D",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp256k1 a)",
+      "hex": "00000000000000000000000000000000000000000000000000000000",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp224k1 b)",
+      "hex": "00000000000000000000000000000000000000000000000000000005",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp224k1 Gx)",
+      "hex": "A1455B334DF099DF30FC28A169A467E9E47075A90F7E650EB6B7A45C",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp224k1 Gy)",
+      "hex": "7E089FED7FBA344282CAFBD6176B4611A05A6DECE5D5A8253DCB83C3",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp224k1 n)",
+      "hex": "01000000000000000000000000001DCE8D2EC6184CAF0A971769FB1F7",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (secp256k1 a)",
+      "hex": "00000000000000000000000000000000000000000000000000000000",
+      "type": "curve_param"
+    },
+    {
       "name": "CurveParam (secp256k1 b)",
-      "hex": "0000000000000000000000000000000000000000000000000000000000000007",
+      "hex": "00000000000000000000000000000000000000000000000000000007",
       "type": "curve_param"
     },
     {
@@ -868,24 +933,24 @@
       "type": "curve_param"
     },
     {
-      "name": "X25519 basepoint (u=9, LE)",
+      "name": "CurveParam (X25519 A)",
+      "hex": "076D06",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (X25519 u_le32)",
       "hex": "0900000000000000000000000000000000000000000000000000000000000000",
-      "type": "const"
+      "type": "curve_param"
     },
     {
-      "name": "ASCII (X25519 A=486662)",
-      "hex": "343836363632",
-      "type": "ascii"
+      "name": "CurveParam (X448 A)",
+      "hex": "0262A6",
+      "type": "curve_param"
     },
     {
-      "name": "ASCII (X448 A=156326)",
-      "hex": "313536333236",
-      "type": "ascii"
-    },
-    {
-      "name": "X448 basepoint (u=5, LE)",
-      "hex": "0500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      "type": "const"
+      "name": "CurveParam (X448 u_le56)",
+      "hex": "0500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "type": "curve_param"
     },
     {
       "name": "Prime (brainpoolP256r1)",
@@ -924,57 +989,117 @@
     },
     {
       "name": "CurveParam (brainpoolP384r1 a)",
-      "hex": "7BC382C63D8C150C3C72080ACE05AFA0C2BEA28E4FB22787139165EFBA91F90F8AA5814A503AD4EB04A8C7DD22CE2826",
+      "hex": "7BC382C63D8C150C3C72080ACE05B173FCF061C3",
       "type": "curve_param"
     },
     {
       "name": "CurveParam (brainpoolP384r1 b)",
-      "hex": "04A8C7DD22CE28268B39B55416F0447C2FB77DE107DCD2A62E880EA53EEB62D57CB4390295DBC9943AB78696FA504C11",
+      "hex": "04A8C7DD22CE2826E2C90F3EF8C745D3D6D4D3E3",
       "type": "curve_param"
     },
     {
       "name": "CurveParam (brainpoolP384r1 Gx)",
-      "hex": "1D1C64F068CF45FFA2A63A81B7C13F6B8847A3E77EF14FE3DB7FCAFE0CBD10E8E826E03436D646AAEF87B2E247D4AF1E",
+      "hex": "1D1C64F068CF45FFA2A63A81B7C13F6B8847C11E6D6D867CFB6C79F521F828AF",
       "type": "curve_param"
     },
     {
       "name": "CurveParam (brainpoolP384r1 Gy)",
-      "hex": "8ABE1D7520F9C2A45CB1EB8E95CFD55262B70B29FEEC5864E19C054FF99129280E4646217791811142820341263C5315",
+      "hex": "8ABE1D7520DA8C3686DD34F56B2A63CFE4CEED5C2E31C9FF2FDCB3F0BF6D3C1C",
       "type": "curve_param"
     },
     {
       "name": "CurveParam (brainpoolP384r1 n)",
-      "hex": "8CB91E82A3386D280F5D6F7E50E641DF152F7109ED5456B31F166E6CAC0425A7CF3AB6AF6B7FC3103B883202E9046565",
+      "hex": "8CB91E82A3386D280F5D6F7E50E641DF152F7109ED5456B3C8E9BD709E032DBF",
       "type": "curve_param"
     },
     {
       "name": "Prime (brainpoolP512r1)",
-      "hex": "AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA703308717D4D9B009BC66842AECDA12AE6A380E62881FF2F2D82C68528AA6056583A48F3",
+      "hex": "AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA703308717D4D9B009BC66842AECDA12AE6A380E6",
       "type": "prime"
     },
     {
       "name": "CurveParam (brainpoolP512r1 a)",
-      "hex": "7830A3318B603B89E2327145AC234CC594CBDD8D3DF91610A83441CAEA9863BC2DED5D5AA8253AA10A2EF1C98B9AC8B57F1117A72BF2C7B9E7C1AC4D77FC94CA",
+      "hex": "7830A3318B603B89E2327145AC234CC5097663980F8740BC0D9B67D1E5FD5E43",
       "type": "curve_param"
     },
     {
       "name": "CurveParam (brainpoolP512r1 b)",
-      "hex": "3DF91610A83441CAEA9863BC2DED5D5AA8253AA10A2EF1C98B9AC8B57F1117A72BF2C7B9E7C1AC4D77FC94CADC083E67984050B75EBAE5DD2809BD638016F723",
+      "hex": "3DF91610A83441CAEA9863C6A9E2254B7E5DA7FDE8DBBE78FE1DC127A2FFA8DE",
       "type": "curve_param"
     },
     {
       "name": "CurveParam (brainpoolP512r1 Gx)",
-      "hex": "81AEE4BDD82ED9645A21322E9C4C6A9385ED9F70B5D916C1B43B62EEF4D0098EFF3B1F78E2D0D48D50D1687B93B97D5F7C6D5047406A5E688B352209BCB9F822",
+      "hex": "81AEE4BDD82ED9645A21321C250CDA06C84B9AD0A4C9D8D97D89D263E3760C46",
       "type": "curve_param"
     },
     {
       "name": "CurveParam (brainpoolP512r1 Gy)",
-      "hex": "7DDE385D566332ECC0EABFA9CF7822FDF209F70024A57B1AA000C55B881F8111B2DCDE494A5F485E5BCA4BD88A2763AED1CA2B2FA8F0540678CD1E0F3AD80892",
+      "hex": "7DDE385D566332ECBAA1E1701AE91D2E4C4B6D6DB48161B24DF3EC36D30F4097",
       "type": "curve_param"
     },
     {
       "name": "CurveParam (brainpoolP512r1 n)",
-      "hex": "AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA70330870553E5C414CA92619418661197FAC10471DB1D381085DDADDB58796829CA90069",
+      "hex": "AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA7033087057C57D5FE1231E8C94C49E3BE15E8E70",
+      "type": "curve_param"
+    },
+    {
+      "name": "Prime (Ed25519)",
+      "hex": "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed25519 a)",
+      "hex": "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed25519 d)",
+      "hex": "52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed25519 Gx)",
+      "hex": "216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed25519 Gy)",
+      "hex": "6666666666666666666666666666666666666666666666666666666666666658",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed25519 n)",
+      "hex": "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED",
+      "type": "curve_param"
+    },
+    {
+      "name": "Prime (Ed448)",
+      "hex": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed448 a)",
+      "hex": "01",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed448 d)",
+      "hex": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6756",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed448 Gx)",
+      "hex": "4F1970C66BED0DED221D15A622BF36DA9E146570470F1767EA6DE324A3D3A46412AE1AF72AB66511433B80E18B00938E2626A82BC70CC05E",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed448 Gy)",
+      "hex": "693F46716EB6BC248876203756C9C7624BEA73736CA3984087789C1E05A0C2D73AD3FF1CE67C39C4FDBD132C4ED7C8AD9808795BF230FA14",
+      "type": "curve_param"
+    },
+    {
+      "name": "CurveParam (Ed448 n)",
+      "hex": "3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7CCA23E9C44EDB49AED63690216CC2728DC58F552378C292AB5844F3",
       "type": "curve_param"
     }
   ]

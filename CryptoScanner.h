@@ -18,9 +18,25 @@ struct Detection {
     std::string severity;
 };
 
+enum class ScanProfile {
+    Default,
+    InstitutionStrict,
+    DeveloperMax
+};
+
 struct ScanOptions {
     bool recurse = true;
     bool deepJar = true;
+    bool excludeSystemDirs = false;
+    bool excludeDevDirs = false;
+    std::size_t jarMaxEntryJava = 0;
+    std::size_t jarMaxEntryClass = 0;
+    std::size_t jarMaxTotalUncomp = 0;
+    std::size_t jarMaxEntries = 0;
+    ScanProfile profile = ScanProfile::Default;
+    std::vector<std::string> includeGlobs;
+    std::vector<std::string> excludeGlobs;
+    std::string csvSkipPath;
 };
 
 class CryptoScanner {
@@ -55,6 +71,7 @@ private:
     std::vector<Detection> scanJarViaMiniZ(const std::string& filePath);
 
     std::vector<AlgorithmPattern> patterns;
+    std::vector<AlgorithmPattern> patternsApiOnly;
     std::vector<BytePattern>      oidBytePatterns;
 
     static std::string severityForTextPattern(const std::string& algName, const std::string& matched);
@@ -65,4 +82,9 @@ private:
     static bool isPemText(const std::string& text);
     static std::vector<std::vector<unsigned char>> pemDecodeAll(const std::string& text);
     static std::vector<unsigned char> b64decode(const std::string& s);
+
+    static std::vector<std::string> loadExcludeGlobsFromCsv(const std::string& csvPath);
+
+    std::function<bool()> cancelCb;
+    ScanOptions activeOpt;
 };
