@@ -1,0 +1,14 @@
+# Qt/qmake
+.qmake.stash
+.gitignore
+
+# Build outputs
+*.o
+*.a
+*.so
+CryptoScanner
+Makefile
+
+# etc
+DerParser.*
+moc_predefs.h
