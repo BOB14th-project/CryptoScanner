@@ -22,7 +22,7 @@
     },
     {
       "name": "Diffie-Hellman",
-      "pattern": "\\b(?:DH|Diffie-?Hellman)\\b|\\b(?:dh(?:-)?param|DH_generate_key)\\b|\\b(?:p|g)\\s*=\\s*[0-9A-Fa-fxX]+\\b|\\bmodexp\\b|\\bprime\\s+modulus\\b",
+      "pattern": "-----BEGIN DH PARAMETERS-----|\\b(?:Diffie-?Hellman|dhparam|prime\\s+modulus|DH_PRIME|DH_GENERATOR)\\b|\\bDH_(?:generate_parameters|compute_key|check)\\b",
       "icase": true
     },
     {
@@ -47,7 +47,7 @@
     },
     {
       "name": "RC4",
-      "pattern": "\\bRC4\\b|\\bRC4_set_key\\b|\\bARC4\\b|\\bARCFOUR\\b",
+      "pattern": "\\b(?:RC4|ARC4|ARCFOUR|RC4_set_key|Rivest\\s+Cipher\\s*4)\\b",
       "icase": true
     },
     {
@@ -416,6 +416,156 @@
       "icase": true
     },
     {
+      "name": "OID dotted has160",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.2\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted seedECB",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.3\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted seedCBC",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.4\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted seedCBCWithSHA1",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.15\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted kcdsa1",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.21\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted kcdsa1WithHAS160",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.22\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted kcdsa1WithSHA1",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.23\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted ecdsaWithHAS160",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.24\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted kcdsaWithSHA256",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.27\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted seedECBWithSHA256",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.32\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted seedCBCWithSHA256",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.33\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted seedOFBWithSHA256",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.34\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted seedCFBWithSHA256",
+      "pattern": "\\b1\\.2\\.410\\.200004\\.1\\.35\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (gpki-alg neat)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.1\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (neatECB)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.2\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (neatCBC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.3\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (neatOFB)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.4\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (neatCFB)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.5\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (neatMAC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.6\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (pbeWithSHA1AndNEAT_CBC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.7\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (pbeWithHAS160AndNEAT_CBC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.8\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ARIA-128)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.18\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ARIA-128-ECB)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.19\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ARIA-128-CBC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.20\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ARIA-128-OFB)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.21\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ARIA-128-CFB)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.22\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (ARIA-128-MAC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.23\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (pbesWithSHA1AndARIA-128-CBC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.24\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (pbesWithSHA256AndARIA-128-CBC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.25\\b",
+      "icase": true
+    },
+    {
+      "name": "OID dotted (pbesWithHAS160AndARIA-128-CBC)",
+      "pattern": "\\b1\\.2\\.410\\.100001\\.1\\.26\\b",
+      "icase": true
+    },
+    {
       "name": "X25519 basepoint u=9",
       "pattern": "\\bu\\s*=\\s*9\\b",
       "icase": true
@@ -740,6 +890,156 @@
     {
       "name": "OID DER (pbeWithMD5AndDES-CBC)",
       "hex": "06092A864886F70D010503",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (has160)",
+      "hex": "06082A831A8C9A440102",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (seedECB)",
+      "hex": "06082A831A8C9A440103",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (seedCBC)",
+      "hex": "06082A831A8C9A440104",
+      "type": "oid"
+    },
+    {
+      "name": "seedCBCWithSHA1",
+      "hex": "06082A831A8C9A44010F",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (kcdsa1)",
+      "hex": "06082A831A8C9A440115",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (kcdsa1WithHAS160)",
+      "hex": "06082A831A8C9A440116",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (kcdsa1WithSHA1)",
+      "hex": "06082A831A8C9A440117",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (ecdsaWithHAS160)",
+      "hex": "06082A831A8C9A440118",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (kcdsaWithSHA256)",
+      "hex": "06082A831A8C9A44011B",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (seedECBWithSHA256)",
+      "hex": "06082A831A8C9A440120",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (seedCBCWithSHA256)",
+      "hex": "06082A831A8C9A440121",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (seedOFBWithSHA256)",
+      "hex": "06082A831A8C9A440122",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (seedCFBWithSHA256)",
+      "hex": "06082A831A8C9A440123",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (gpki-alg neat)",
+      "hex": "06082A831A868D210101",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (neatECB)",
+      "hex": "06082A831A868D210102",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (neatCBC)",
+      "hex": "06082A831A868D210103",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (neatOFB)",
+      "hex": "06082A831A868D210104",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (neatCFB)",
+      "hex": "06082A831A868D210105",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (neatMAC)",
+      "hex": "06082A831A868D210106",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (pbeWithSHA1AndNEAT_CBC)",
+      "hex": "06082A831A868D210107",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (pbeWithHAS160AndNEAT_CBC)",
+      "hex": "06082A831A868D210108",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (ARIA-128)",
+      "hex": "06082A831A868D210112",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (ARIA-128-ECB)",
+      "hex": "06082A831A868D210113",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (ARIA-128-CBC)",
+      "hex": "06082A831A868D210114",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (ARIA-128-OFB)",
+      "hex": "06082A831A868D210115",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (ARIA-128-CFB)",
+      "hex": "06082A831A868D210116",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (ARIA-128-MAC)",
+      "hex": "06082A831A868D210117",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (pbesWithSHA1AndARIA-128-CBC)",
+      "hex": "06082A831A868D210118",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (pbesWithSHA256AndARIA-128-CBC)",
+      "hex": "06082A831A868D210119",
+      "type": "oid"
+    },
+    {
+      "name": "OID DER (pbesWithHAS160AndARIA-128-CBC)",
+      "hex": "06082A831A868D21011A",
       "type": "oid"
     },
     {
