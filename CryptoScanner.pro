@@ -11,6 +11,7 @@ DEFINES += MINIZ_NO_ZLIB_APIS MINIZ_NO_ARCHIVE_WRITING_APIS MZ_NO_MESSAGE
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/third_party/miniz
 INCLUDEPATH += $$PWD/third_party/tree-sitter/lib/include
+INCLUDEPATH += $$PWD/third_party/tree-sitter/lib/src
 
 SOURCES += \
     gui_main_linux.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
     JavaASTScanner.cpp \
     PythonASTScanner.cpp \
     CppASTScanner.cpp \
+    DynLinkParser.cpp \
     third_party/miniz/miniz.c \
     third_party/miniz/miniz_zip.c \
     third_party/miniz/miniz_tinfl.c \
@@ -40,7 +42,9 @@ HEADERS += \
     JavaBytecodeScanner.h \
     JavaASTScanner.h \
     PythonASTScanner.h \
-    CppASTScanner.h
+    CppASTScanner.h \
+    ASTSymbol.h \
+    DynLinkParser.h
 
 QMAKE_CFLAGS   += -w -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -fPIC
 QMAKE_CXXFLAGS += -w -fno-diagnostics-show-caret -fno-diagnostics-color -fno-diagnostics-show-option \

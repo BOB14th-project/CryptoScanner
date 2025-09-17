@@ -42,8 +42,13 @@
     },
     {
       "name": "Blowfish/bcrypt",
-      "pattern": "\\bBlowfish\\b|\\bbcrypt\\b",
+      "pattern": "\\bBlowfish\\b",
       "icase": true
+    },
+    {
+      "name": "bcrypt (password hash marker)",
+      "pattern": "\\$(?:2[aby])\\$\\d\\d\\$[./A-Za-z0-9]{22}",
+      "icase": false
     },
     {
       "name": "RC4",
@@ -177,12 +182,12 @@
     },
     {
       "name": "API (OpenSSL)",
-      "pattern": "\\b(?:EVP_[A-Za-z0-9_]+|RSA_[A-Za-z0-9_]+|EC_KEY_[A-Za-z0-9_]+|EC_GROUP_[A-Za-z0-9_]+|EC_[A-Za-z0-9_]+|DSA_[A-Za-z0-9_]+|DH_[A-Za-z0-9_]+|DES_[A-Za-z0-9_]+|AES_[A-Za-z0-9_]+|RC4_[A-Za-z0-9_]+|MD5_[A-Za-z0-9_]+|SHA1_[A-Za-z0-9_]+)\\b",
+      "pattern": "\\b(?:EVP_[A-Za-z0-9_]+|RSA_[A-Za-z0-9_]+|EC_KEY_[A-Za-z0-9_]+|EC_GROUP_[A-Za-z0-9_]+|EC_[A-Za-z0-9_]+|DSA_[A-Za-z0-9_]+|DH_[A-Za-z0-9_]+|DES_[A-Za-z0-9_]+|AES_[A-Za-z0-9_]+|RC4_[A-Za-z0-9_]+|MD5_[A-Za-z0-9_]+|SHA(?:1|224|256|384|512)_[A-Za-z0-9_]+|HMAC_[A-Za-z0-9_]+)\\b",
       "icase": false
     },
     {
       "name": "API (Windows CNG/CAPI)",
-      "pattern": "\\b(?:BCrypt[A-Za-z0-9_]*|NCrypt[A-Za-z0-9_]*|CryptAcquireContext|CryptGenKey|CryptDeriveKey)\\b",
+      "pattern": "\\b(?:(?:BCrypt|NCrypt)[A-Za-z0-9_]+|CryptAcquireContext(?:A|W)?|CryptReleaseContext|CryptGenKey|CryptDeriveKey|CryptImportKey|CryptExportKey|CryptCreateHash|CryptHashData|CryptDestroyHash|CryptEncrypt|CryptDecrypt|CryptVerifySignature|CryptSignHash|BCryptGenRandom|Cert(?:Open|Close)Store|CertFindCertificateInStore|CertGetCertificateChain|CertFreeCertificateChain)\\b",
       "icase": true
     },
     {

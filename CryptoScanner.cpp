@@ -6,6 +6,7 @@
 #include "CppASTScanner.h"
 #include "ASTSymbol.h"
 #include "FileScanner.h"
+#include "DynLinkParser.h"
 
 #include <algorithm>
 #include <array>
@@ -129,6 +130,56 @@ static inline bool nearAny(const std::vector<std::size_t>& anchors, std::size_t 
     return false;
 }
 
+static void postprocessDetections(std::vector<Detection>& results) {
+    std::unordered_set<std::string> apiFuncs;
+    std::unordered_set<std::string> importLibTokens;
+    for (const auto& d : results) {
+        if (d.evidenceType == "api") {
+            apiFuncs.insert(toLowerStr(d.matchString));
+        } else if (d.evidenceType == "import") {
+            std::string s = toLowerStr(d.matchString);
+            std::string base = s;
+            size_t p = base.find_last_of("/\\");
+            if (p != std::string::npos) base = base.substr(p + 1);
+            if (ends_with(base, ".dll") || ends_with(base, ".so")) {
+                size_t dot = base.find_last_of('.');
+                if (dot != std::string::npos) base = base.substr(0, dot);
+            }
+            importLibTokens.insert(base);
+        }
+    }
+    std::vector<Detection> filtered;
+    std::unordered_set<std::string> seenKey;
+    std::unordered_set<std::string> seenOidAlg;
+    std::unordered_set<std::string> seenCurveFam;
+    auto key = [&](const Detection& d){
+        return d.evidenceType + "|" + d.algorithm + "|" + toLowerStr(d.matchString);
+    };
+    for (const auto& d : results) {
+        if (d.evidenceType == "oid") {
+            if (!seenOidAlg.insert(d.algorithm).second) continue;
+        } else if (d.evidenceType == "curve_param") {
+            std::string fam = curveFamily(d.algorithm);
+            if (!seenCurveFam.insert(fam).second) continue;
+        } else if (d.evidenceType == "text") {
+            std::string m = toLowerStr(d.matchString);
+            if (apiFuncs.count(m)) continue;
+            bool overshadow = false;
+            for (const auto& f : apiFuncs) {
+                if (f.find(m) != std::string::npos || m.find(f) != std::string::npos) { overshadow = true; break; }
+            }
+            if (overshadow) continue;
+            if (importLibTokens.count(m)) continue;
+        } else if (d.algorithm == "ImportedWeakCrypto") {
+            std::string m = toLowerStr(d.matchString);
+            if (apiFuncs.count(m)) continue;
+        }
+        std::string k = key(d);
+        if (seenKey.insert(k).second) filtered.push_back(d);
+    }
+    results.swap(filtered);
+}
+
 std::string CryptoScanner::lowercaseExt(const std::string& p) { return lowercaseExtCached(p); }
 
 std::uintmax_t CryptoScanner::getFileSizeSafe(const std::string& path) {
@@ -197,7 +248,6 @@ std::vector<unsigned char> CryptoScanner::b64decode(const std::string& s) {
         15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,
         -1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,
         41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1,
-        -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
         -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
     };
     std::vector<unsigned char> out;
@@ -434,20 +484,39 @@ std::vector<Detection> CryptoScanner::scanBinaryWholeFile(const std::string& fil
         }
     }
     if (isBin) {
-        std::vector<Detection> filtered;
-        std::unordered_set<std::string> seenOidAlg;
-        std::unordered_set<std::string> seenCurveFam;
-        for (const auto& d : results) {
-            if (d.evidenceType == "oid") {
-                if (seenOidAlg.insert(d.algorithm).second) filtered.push_back(d);
-            } else if (d.evidenceType == "curve_param") {
-                std::string fam = curveFamily(d.algorithm);
-                if (seenCurveFam.insert(fam).second) filtered.push_back(d);
-            } else {
-                filtered.push_back(d);
+        bool elf = dyn::isELF(buffer);
+        bool pe  = dyn::isPE(buffer);
+        if (elf) {
+            auto imps = dyn::parseELF(buffer);
+            for (const auto& imp : imps) {
+                std::string sev = "low";
+                std::string low = toLowerStr(imp.lib);
+                if (low.find("crypto") != std::string::npos || low.find("openssl") != std::string::npos || low.find("mbed") != std::string::npos || low.find("wolf") != std::string::npos || low.find("gnutls") != std::string::npos || low.find("nss") != std::string::npos || low.find("gcrypt") != std::string::npos || low.find("sodium") != std::string::npos || low.find("nettle") != std::string::npos || low.find("botan") != std::string::npos) sev = "med";
+                results.push_back({ filePath, 0, std::string("ELF DT_NEEDED"), imp.lib, "import", sev });
+            }
+        } else if (pe) {
+            auto imps = dyn::parsePE(buffer);
+            for (const auto& imp : imps) {
+                std::string sev = "low";
+                std::string low = toLowerStr(imp.lib);
+                if (low.find("crypt") != std::string::npos || low.find("bcrypt") != std::string::npos || low.find("crypt32") != std::string::npos || low.find("ncrypt") != std::string::npos || low.find("schannel") != std::string::npos || low.find("secur32") != std::string::npos || low.find("libcrypto") != std::string::npos || low.find("openssl") != std::string::npos) sev = "med";
+                results.push_back({ filePath, 0, std::string("PE IMPORT"), imp.lib, "import", sev });
+                for (const auto& fn : imp.funcs) {
+                    for (const auto& ap : patternsApiOnly) {
+                        try {
+                            std::smatch m;
+                            if (std::regex_search(fn, m, ap.pattern)) {
+                                results.push_back({ filePath, 0, ap.name, fn, "api", severityForTextPattern(ap.name, fn) });
+                            }
+                        } catch (...) {}
+                    }
+                    std::string fl = toLowerStr(fn);
+                    bool weak = fl.find("md5")!=std::string::npos || fl.find("sha1")!=std::string::npos || fl.find("des_")!=std::string::npos || fl.find("rc4")!=std::string::npos || fl.find("rc2")!=std::string::npos || fl.find("rsa_generate_key")!=std::string::npos || fl.find("seed")!=std::string::npos;
+                    if (weak) results.push_back({ filePath, 0, std::string("ImportedWeakCrypto"), fn, "api", "med" });
+                }
             }
         }
-        results.swap(filtered);
+        postprocessDetections(results);
     }
     FileScanner::clearCurrentSourceName();
     return results;
